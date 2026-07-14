@@ -22,6 +22,7 @@ import { Route as StudentResourcesRouteImport } from './routes/student.resources
 import { Route as StudentQuizRouteImport } from './routes/student.quiz'
 import { Route as StudentProfileRouteImport } from './routes/student.profile'
 import { Route as StudentFlashcardsRouteImport } from './routes/student.flashcards'
+import { Route as AdminLoginRouteImport } from './routes/admin_.login'
 import { Route as AdminSubjectsRouteImport } from './routes/admin.subjects'
 import { Route as AdminStudentsRouteImport } from './routes/admin.students'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
@@ -94,6 +95,11 @@ const StudentFlashcardsRoute = StudentFlashcardsRouteImport.update({
   path: '/flashcards',
   getParentRoute: () => StudentRoute,
 } as any)
+const AdminLoginRoute = AdminLoginRouteImport.update({
+  id: '/admin_/login',
+  path: '/admin/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminSubjectsRoute = AdminSubjectsRouteImport.update({
   id: '/subjects',
   path: '/subjects',
@@ -137,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/students': typeof AdminStudentsRoute
   '/admin/subjects': typeof AdminSubjectsRoute
+  '/admin/login': typeof AdminLoginRoute
   '/student/flashcards': typeof StudentFlashcardsRoute
   '/student/profile': typeof StudentProfileRoute
   '/student/quiz': typeof StudentQuizRoute
@@ -156,6 +163,7 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/students': typeof AdminStudentsRoute
   '/admin/subjects': typeof AdminSubjectsRoute
+  '/admin/login': typeof AdminLoginRoute
   '/student/flashcards': typeof StudentFlashcardsRoute
   '/student/profile': typeof StudentProfileRoute
   '/student/quiz': typeof StudentQuizRoute
@@ -178,6 +186,7 @@ export interface FileRoutesById {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/students': typeof AdminStudentsRoute
   '/admin/subjects': typeof AdminSubjectsRoute
+  '/admin_/login': typeof AdminLoginRoute
   '/student/flashcards': typeof StudentFlashcardsRoute
   '/student/profile': typeof StudentProfileRoute
   '/student/quiz': typeof StudentQuizRoute
@@ -201,6 +210,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/students'
     | '/admin/subjects'
+    | '/admin/login'
     | '/student/flashcards'
     | '/student/profile'
     | '/student/quiz'
@@ -220,6 +230,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/students'
     | '/admin/subjects'
+    | '/admin/login'
     | '/student/flashcards'
     | '/student/profile'
     | '/student/quiz'
@@ -241,6 +252,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/students'
     | '/admin/subjects'
+    | '/admin_/login'
     | '/student/flashcards'
     | '/student/profile'
     | '/student/quiz'
@@ -257,6 +269,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
   StudentRoute: typeof StudentRouteWithChildren
+  AdminLoginRoute: typeof AdminLoginRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -351,6 +364,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/student/flashcards'
       preLoaderRoute: typeof StudentFlashcardsRouteImport
       parentRoute: typeof StudentRoute
+    }
+    '/admin_/login': {
+      id: '/admin_/login'
+      path: '/admin/login'
+      fullPath: '/admin/login'
+      preLoaderRoute: typeof AdminLoginRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/admin/subjects': {
       id: '/admin/subjects'
@@ -448,6 +468,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
   StudentRoute: StudentRouteWithChildren,
+  AdminLoginRoute: AdminLoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

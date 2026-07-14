@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   Users,
@@ -8,7 +8,9 @@ import {
   FileQuestion,
   Settings,
 } from "lucide-react";
+import { toast } from "sonner";
 import { DashboardShell, type NavGroup } from "@/components/dashboard-shell";
+import { supabase } from "@/integrations/supabase/client";
 
 const groups: NavGroup[] = [
   {
@@ -37,7 +39,25 @@ const groups: NavGroup[] = [
 ];
 
 export const Route = createFileRoute("/admin")({
+  ssr: false,
   head: () => ({ meta: [{ title: "Admin — NCC SmartPrep" }] }),
+  beforeLoad: async () => {
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) {
+      throw redirect({ to: "/admin/login" });
+    }
+    const { data: role } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userData.user.id)
+      .eq("role", "admin")
+      .maybeSingle();
+    if (!role) {
+      await supabase.auth.signOut();
+      toast.error("Access denied. Admins only.");
+      throw redirect({ to: "/admin/login" });
+    }
+  },
   component: AdminLayout,
 });
 

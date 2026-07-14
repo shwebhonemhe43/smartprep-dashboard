@@ -46,8 +46,15 @@ export function DashboardShell({
   children: ReactNode;
 }) {
   const currentPath = useRouterState({ select: (r) => r.location.pathname });
+  const navigate = useNavigate();
+  const isAdmin = currentPath.startsWith("/admin");
   const resolvedGroups: NavGroup[] =
     groups ?? (items ? [{ label: groupLabel ?? "", items }] : []);
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    navigate({ to: isAdmin ? "/admin/login" : "/login", replace: true });
+  }
 
   return (
     <SidebarProvider>

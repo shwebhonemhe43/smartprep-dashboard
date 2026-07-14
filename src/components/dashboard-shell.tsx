@@ -24,20 +24,29 @@ export type NavItem = {
   icon: ComponentType<{ className?: string }>;
 };
 
+export type NavGroup = {
+  label: string;
+  items: NavItem[];
+};
+
 export function DashboardShell({
   items,
+  groups,
   groupLabel,
   title,
   subtitle,
   children,
 }: {
-  items: NavItem[];
-  groupLabel: string;
+  items?: NavItem[];
+  groups?: NavGroup[];
+  groupLabel?: string;
   title: string;
   subtitle?: string;
   children: ReactNode;
 }) {
   const currentPath = useRouterState({ select: (r) => r.location.pathname });
+  const resolvedGroups: NavGroup[] =
+    groups ?? (items ? [{ label: groupLabel ?? "", items }] : []);
 
   return (
     <SidebarProvider>
@@ -47,27 +56,30 @@ export function DashboardShell({
             <BrandLogo />
           </SidebarHeader>
           <SidebarContent>
-            <SidebarGroup>
-              <SidebarGroupLabel>{groupLabel}</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {items.map((item) => {
-                    const active = currentPath === item.url;
-                    return (
-                      <SidebarMenuItem key={item.url}>
-                        <SidebarMenuButton asChild isActive={active} tooltip={item.title}>
-                          <Link to={item.url} className="flex items-center gap-2">
-                            <item.icon className="h-4 w-4" />
-                            <span>{item.title}</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  })}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
+            {resolvedGroups.map((group, idx) => (
+              <SidebarGroup key={group.label || `group-${idx}`}>
+                {group.label && <SidebarGroupLabel>{group.label}</SidebarGroupLabel>}
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {group.items.map((item) => {
+                      const active = currentPath === item.url;
+                      return (
+                        <SidebarMenuItem key={item.url}>
+                          <SidebarMenuButton asChild isActive={active} tooltip={item.title}>
+                            <Link to={item.url} className="flex items-center gap-2">
+                              <item.icon className="h-4 w-4" />
+                              <span>{item.title}</span>
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      );
+                    })}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            ))}
           </SidebarContent>
+
           <SidebarFooter className="border-t border-sidebar-border p-2">
             <SidebarMenu>
               <SidebarMenuItem>

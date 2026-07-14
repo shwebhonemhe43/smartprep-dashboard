@@ -1,6 +1,7 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import type { ReactNode, ComponentType } from "react";
 import { LogOut } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Sidebar,
   SidebarContent,
@@ -45,8 +46,15 @@ export function DashboardShell({
   children: ReactNode;
 }) {
   const currentPath = useRouterState({ select: (r) => r.location.pathname });
+  const navigate = useNavigate();
+  const isAdmin = currentPath.startsWith("/admin");
   const resolvedGroups: NavGroup[] =
     groups ?? (items ? [{ label: groupLabel ?? "", items }] : []);
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    navigate({ to: isAdmin ? "/admin/login" : "/login", replace: true });
+  }
 
   return (
     <SidebarProvider>
@@ -83,11 +91,9 @@ export function DashboardShell({
           <SidebarFooter className="border-t border-sidebar-border p-2">
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Log out">
-                  <Link to="/login" className="flex items-center gap-2">
-                    <LogOut className="h-4 w-4" />
-                    <span>Log out</span>
-                  </Link>
+                <SidebarMenuButton tooltip="Log out" onClick={handleLogout}>
+                  <LogOut className="h-4 w-4" />
+                  <span>Log out</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

@@ -1,56 +1,171 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Users, BookMarked, FileText, FileQuestion } from "lucide-react";
-import { StatCard } from "@/components/dashboard-shell";
+import {
+  Users,
+  BookOpen,
+  TrendingUp,
+  BarChart3,
+  UserPlus,
+  Upload,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const Route = createFileRoute("/admin/")({
   component: AdminDashboard,
 });
 
-const activity = [
-  { who: "Sarah K.", what: "uploaded 3 new lecture files", when: "2h ago" },
-  { who: "Admin", what: "added subject 'Database Design'", when: "5h ago" },
-  { who: "James P.", what: "registered as a new student", when: "1d ago" },
-  { who: "Admin", what: "uploaded 12 past paper questions", when: "2d ago" },
+type Stat = {
+  label: string;
+  value: string;
+  hint: string;
+  icon: React.ComponentType<{ className?: string }>;
+};
+
+const stats: Stat[] = [
+  { label: "Total Students", value: "1,248", hint: "+12.4%", icon: Users },
+  { label: "Learning Resources", value: "342", hint: "+5 this week", icon: BookOpen },
+  { label: "Active This Week", value: "876", hint: "+8.1%", icon: TrendingUp },
+  { label: "Study Plans Generated", value: "2,914", hint: "+18.2%", icon: BarChart3 },
+];
+
+type QuickAction = {
+  title: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+};
+
+const quickActions: QuickAction[] = [
+  {
+    title: "Import Students",
+    description: "Bulk upload student records via CSV",
+    icon: UserPlus,
+  },
+  {
+    title: "Upload Resources",
+    description: "Add new learning materials for students",
+    icon: Upload,
+  },
+  {
+    title: "View Analytics",
+    description: "Track engagement and performance",
+    icon: BarChart3,
+  },
+];
+
+type Activity = {
+  title: string;
+  when: string;
+  tag: "Students" | "Resources";
+};
+
+const activity: Activity[] = [
+  { title: "Imported 42 student records", when: "2 hours ago", tag: "Students" },
+  { title: "Uploaded 'Data Structures — Week 4.pdf'", when: "5 hours ago", tag: "Resources" },
+  { title: "Approved 8 new registrations", when: "Yesterday", tag: "Students" },
+  { title: "Published new practice quiz set", when: "2 days ago", tag: "Resources" },
+  { title: "Updated Networking syllabus outline", when: "3 days ago", tag: "Resources" },
 ];
 
 function AdminDashboard() {
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard icon={Users} label="Total Students" value={248} hint="+12 this week" accent="primary" />
-        <StatCard icon={BookMarked} label="Total Subjects" value={18} hint="Across 2 semesters" accent="chart-2" />
-        <StatCard icon={FileText} label="Uploaded Lecture Files" value={342} hint="+27 this month" accent="chart-3" />
-        <StatCard icon={FileQuestion} label="Uploaded Old Questions" value={126} hint="+8 this week" accent="accent" />
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="space-y-1.5 border-b border-border/60 pb-6">
+        <h1 className="font-display text-4xl font-extrabold tracking-tight">
+          Dashboard
+        </h1>
+        <p className="text-muted-foreground">
+          Welcome back — here's what's happening at NCC SmartPrep today.
+        </p>
       </div>
 
+      {/* Stat cards */}
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {stats.map((s) => (
+          <Card
+            key={s.label}
+            className="rounded-2xl border-border/60 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-elegant"
+          >
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <p className="text-sm font-medium text-muted-foreground">
+                  {s.label}
+                </p>
+                <s.icon className="h-5 w-5 text-primary" />
+              </div>
+              <div className="mt-4 font-display text-4xl font-extrabold tracking-tight">
+                {s.value}
+              </div>
+              <p className="mt-2 text-xs font-medium text-muted-foreground">
+                {s.hint}
+              </p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Quick Actions + Recent Activity */}
       <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="border-border/60 shadow-soft lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="font-display text-lg">Recent activity</CardTitle>
+        <Card className="rounded-2xl border-border/60 shadow-soft lg:col-span-2">
+          <CardHeader className="pb-4">
+            <CardTitle className="font-display text-xl font-bold">
+              Quick Actions
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Common tasks to keep the platform running smoothly
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {quickActions.map((a) => (
+                <button
+                  key={a.title}
+                  type="button"
+                  className="group flex items-start gap-4 rounded-xl border border-border/60 bg-background p-4 text-left transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-soft"
+                >
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary/15">
+                    <a.icon className="h-5 w-5" />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block font-semibold">{a.title}</span>
+                    <span className="mt-0.5 block text-xs text-muted-foreground">
+                      {a.description}
+                    </span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-2xl border-border/60 shadow-soft">
+          <CardHeader className="pb-4">
+            <CardTitle className="font-display text-xl font-bold">
+              Recent Activity
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Latest actions across the platform
+            </p>
           </CardHeader>
           <CardContent>
             <ul className="divide-y divide-border/60">
               {activity.map((a, i) => (
-                <li key={i} className="flex items-center justify-between gap-3 py-3 text-sm">
-                  <span className="min-w-0">
-                    <span className="font-medium">{a.who}</span>{" "}
-                    <span className="text-muted-foreground">{a.what}</span>
+                <li key={i} className="flex items-start justify-between gap-3 py-3.5">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium leading-snug">{a.title}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{a.when}</p>
+                  </div>
+                  <span
+                    className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-medium ${
+                      a.tag === "Students"
+                        ? "bg-primary/10 text-primary"
+                        : "bg-accent text-accent-foreground"
+                    }`}
+                  >
+                    {a.tag}
                   </span>
-                  <span className="shrink-0 text-xs text-muted-foreground">{a.when}</span>
                 </li>
               ))}
             </ul>
-          </CardContent>
-        </Card>
-        <Card className="border-border/60 shadow-soft">
-          <CardHeader>
-            <CardTitle className="font-display text-lg">Quick tips</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm text-muted-foreground">
-            <p>Upload high-quality lecture PDFs to improve AI note generation.</p>
-            <p>Keep subject metadata up to date so plans stay accurate.</p>
-            <p>Review student progress weekly to catch struggling learners early.</p>
           </CardContent>
         </Card>
       </div>

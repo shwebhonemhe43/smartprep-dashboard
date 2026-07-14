@@ -1,11 +1,15 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { BrandLogo } from "@/components/brand-logo";
-import { User, Mail, Lock } from "lucide-react";
+import { User, Mail, Lock, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { registerStudent } from "@/lib/auth.functions";
 
 export const Route = createFileRoute("/register")({
   head: () => ({
@@ -18,12 +22,14 @@ export const Route = createFileRoute("/register")({
 });
 
 function RegisterPage() {
+  const navigate = useNavigate();
+  const registerFn = useServerFn(registerStudent);
   const [form, setForm] = useState({ name: "", email: "", password: "", confirm: "" });
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   const errors = {
     name: touched.name && form.name.trim().length < 2 ? "Enter your full name" : "",
-    email: touched.email && !/^\S+@\S+\.\S+$/.test(form.email) ? "Enter a valid email" : "",
+    email: touched.email && !/^\S+@\S+\.\S+$/.test(form.email) ? "Enter a valid Outlook email" : "",
     password: touched.password && form.password.length < 6 ? "Min 6 characters" : "",
     confirm: touched.confirm && form.confirm !== form.password ? "Passwords don't match" : "",
   };
@@ -31,6 +37,28 @@ function RegisterPage() {
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
   const blur = (k: string) => () => setTouched((t) => ({ ...t, [k]: true }));
+
+  const mutation = useMutation({
+    mutationFn: async () =>
+      registerFn({
+        data: {
+          email: form.email.trim().toLowerCase(),
+          full_name: form.name,
+          password: form.password,
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Account created. Please log in.");
+      navigate({ to: "/login" });
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const canSubmit =
+    form.name.trim().length >= 2 &&
+    /^\S+@\S+\.\S+$/.test(form.email) &&
+    form.password.length >= 6 &&
+    form.confirm === form.password;
 
   return (
     <div className="bg-hero flex min-h-screen items-center justify-center px-4 py-12">
@@ -41,7 +69,7 @@ function RegisterPage() {
         <Card className="border-border/60 shadow-elegant">
           <CardHeader className="space-y-1 text-center">
             <CardTitle className="font-display text-2xl">Create your account</CardTitle>
-            <CardDescription>Start studying smarter in minutes.</CardDescription>
+            <CardDescription>Register with your Outlook email to get started.</CardDescription>
           </CardHeader>
           <CardContent>
             <form
@@ -49,8 +77,17 @@ function RegisterPage() {
               onSubmit={(e) => {
                 e.preventDefault();
                 setTouched({ name: true, email: true, password: true, confirm: true });
+                if (canSubmit && !mutation.isPending) mutation.mutate();
               }}
             >
+              <div className="space-y-2">
+                <Label htmlFor="email">Outlook Email</Label>
+                <div className="relative">
+                  <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input id="email" type="email" className="pl-9" placeholder="2025d0001@student.strategyfirst.edu.mm" value={form.email} onChange={set("email")} onBlur={blur("email")} />
+                </div>
+                {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
                 <div className="relative">
@@ -58,14 +95,6 @@ function RegisterPage() {
                   <Input id="name" className="pl-9" placeholder="Jane Doe" value={form.name} onChange={set("name")} onBlur={blur("name")} />
                 </div>
                 {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <div className="relative">
-                  <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input id="email" type="email" className="pl-9" placeholder="you@example.com" value={form.email} onChange={set("email")} onBlur={blur("email")} />
-                </div>
-                {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
@@ -83,7 +112,8 @@ function RegisterPage() {
                 </div>
                 {errors.confirm && <p className="text-xs text-destructive">{errors.confirm}</p>}
               </div>
-              <Button type="submit" className="w-full shadow-soft" size="lg">
+              <Button type="submit" className="w-full shadow-soft" size="lg" disabled={mutation.isPending}>
+                {mutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                 Register
               </Button>
               <p className="text-center text-sm text-muted-foreground">

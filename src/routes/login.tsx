@@ -100,9 +100,11 @@ function LoginPage() {
                 </div>
                 {passwordError && <p className="text-xs text-destructive">{passwordError}</p>}
               </div>
-              <Button type="submit" className="w-full shadow-soft" size="lg">
+              <Button type="submit" className="w-full shadow-soft" size="lg" disabled={loading}>
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Login
               </Button>
+
               <p className="text-center text-sm text-muted-foreground">
                 Don't have an account?{" "}
                 <Link to="/register" className="font-medium text-primary hover:underline">

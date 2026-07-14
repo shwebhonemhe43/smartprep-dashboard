@@ -18,7 +18,7 @@ export const registerStudent = createServerFn({ method: "POST" })
 
     const { data: pre, error: lookupErr } = await supabaseAdmin
       .from("pre_registered_students")
-      .select("id, full_name, program, status, email")
+      .select("id, student_id, full_name, program, status, email")
       .eq("email", data.email)
       .maybeSingle();
 
@@ -40,11 +40,24 @@ export const registerStudent = createServerFn({ method: "POST" })
       email: data.email,
       password: data.password,
       email_confirm: true,
-      user_metadata: { full_name: pre.full_name, program: pre.program },
+      user_metadata: { full_name: pre.full_name, program: pre.program, student_id: pre.student_id },
     });
 
     if (createErr || !created?.user) {
       throw new Error(createErr?.message ?? "Could not create account.");
+    }
+
+    const { error: profileErr } = await supabaseAdmin.from("student_profiles").insert({
+      auth_user_id: created.user.id,
+      student_id: pre.student_id,
+      full_name: pre.full_name,
+      email: pre.email,
+      program: pre.program,
+    });
+
+    if (profileErr) {
+      await supabaseAdmin.auth.admin.deleteUser(created.user.id);
+      throw new Error(profileErr.message);
     }
 
     const { error: updErr } = await supabaseAdmin
@@ -53,7 +66,7 @@ export const registerStudent = createServerFn({ method: "POST" })
       .eq("id", pre.id);
 
     if (updErr) {
-      // best-effort rollback
+      await supabaseAdmin.from("student_profiles").delete().eq("auth_user_id", created.user.id);
       await supabaseAdmin.auth.admin.deleteUser(created.user.id);
       throw new Error(updErr.message);
     }

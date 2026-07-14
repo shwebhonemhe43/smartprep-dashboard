@@ -91,11 +91,9 @@ export function DashboardShell({
           <SidebarFooter className="border-t border-sidebar-border p-2">
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Log out">
-                  <Link to="/login" className="flex items-center gap-2">
-                    <LogOut className="h-4 w-4" />
-                    <span>Log out</span>
-                  </Link>
+                <SidebarMenuButton tooltip="Log out" onClick={handleLogout}>
+                  <LogOut className="h-4 w-4" />
+                  <span>Log out</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

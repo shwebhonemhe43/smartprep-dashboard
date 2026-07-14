@@ -2,20 +2,38 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   Users,
+  ClipboardList,
   BookMarked,
   FileText,
   FileQuestion,
   Settings,
 } from "lucide-react";
-import { DashboardShell, type NavItem } from "@/components/dashboard-shell";
+import { DashboardShell, type NavGroup } from "@/components/dashboard-shell";
 
-const items: NavItem[] = [
-  { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
-  { title: "Student Management", url: "/admin/students", icon: Users },
-  { title: "Subject Management", url: "/admin/subjects", icon: BookMarked },
-  { title: "Lecture Files", url: "/admin/lectures", icon: FileText },
-  { title: "Old Questions", url: "/admin/questions", icon: FileQuestion },
-  { title: "Settings", url: "/admin/settings", icon: Settings },
+const groups: NavGroup[] = [
+  {
+    label: "",
+    items: [{ title: "Dashboard", url: "/admin", icon: LayoutDashboard }],
+  },
+  {
+    label: "Student Management",
+    items: [
+      { title: "Student Management", url: "/admin/students", icon: Users },
+      { title: "Student Records", url: "/admin/records", icon: ClipboardList },
+    ],
+  },
+  {
+    label: "Resource Management",
+    items: [
+      { title: "Subject Management", url: "/admin/subjects", icon: BookMarked },
+      { title: "Lecture Files", url: "/admin/lectures", icon: FileText },
+      { title: "Old Questions", url: "/admin/questions", icon: FileQuestion },
+    ],
+  },
+  {
+    label: "",
+    items: [{ title: "Settings", url: "/admin/settings", icon: Settings }],
+  },
 ];
 
 export const Route = createFileRoute("/admin")({
@@ -25,7 +43,11 @@ export const Route = createFileRoute("/admin")({
 
 function AdminLayout() {
   return (
-    <DashboardShell items={items} groupLabel="Admin" title="Admin Console" subtitle="Manage students, subjects and resources">
+    <DashboardShell
+      groups={groups}
+      title="Admin Console"
+      subtitle="Manage students, subjects and resources"
+    >
       <Outlet />
     </DashboardShell>
   );

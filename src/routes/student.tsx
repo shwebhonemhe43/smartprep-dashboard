@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   BookMarked,
@@ -9,6 +9,7 @@ import {
   FolderOpen,
 } from "lucide-react";
 import { DashboardShell, type NavItem } from "@/components/dashboard-shell";
+import { supabase } from "@/integrations/supabase/client";
 
 const items: NavItem[] = [
   { title: "Dashboard", url: "/student", icon: LayoutDashboard },
@@ -21,7 +22,14 @@ const items: NavItem[] = [
 ];
 
 export const Route = createFileRoute("/student")({
+  ssr: false,
   head: () => ({ meta: [{ title: "Student — NCC SmartPrep" }] }),
+  beforeLoad: async () => {
+    const { data, error } = await supabase.auth.getUser();
+    if (error || !data.user) {
+      throw redirect({ to: "/login" });
+    }
+  },
   component: StudentLayout,
 });
 

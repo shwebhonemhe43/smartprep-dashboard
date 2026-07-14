@@ -1,0 +1,62 @@
+import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
+
+const registerSchema = z.object({
+  email: z.string().trim().toLowerCase().email(),
+  full_name: z.string().trim().min(1).max(200),
+  password: z.string().min(6).max(200),
+});
+
+function normalize(s: string) {
+  return s.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+export const registerStudent = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => registerSchema.parse(input))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: pre, error: lookupErr } = await supabaseAdmin
+      .from("pre_registered_students")
+      .select("id, full_name, program, status, email")
+      .eq("email", data.email)
+      .maybeSingle();
+
+    if (lookupErr) throw new Error(lookupErr.message);
+
+    if (!pre || normalize(pre.full_name) !== normalize(data.full_name)) {
+      throw new Error("Your account is not approved by administrator.");
+    }
+
+    if (pre.program !== "NCC") {
+      throw new Error("Only NCC students can register.");
+    }
+
+    if (pre.status !== "pending") {
+      throw new Error("This student has already registered.");
+    }
+
+    const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({
+      email: data.email,
+      password: data.password,
+      email_confirm: true,
+      user_metadata: { full_name: pre.full_name, program: pre.program },
+    });
+
+    if (createErr || !created?.user) {
+      throw new Error(createErr?.message ?? "Could not create account.");
+    }
+
+    const { error: updErr } = await supabaseAdmin
+      .from("pre_registered_students")
+      .update({ status: "registered" })
+      .eq("id", pre.id);
+
+    if (updErr) {
+      // best-effort rollback
+      await supabaseAdmin.auth.admin.deleteUser(created.user.id);
+      throw new Error(updErr.message);
+    }
+
+    return { ok: true };
+  });

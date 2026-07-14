@@ -1,11 +1,13 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { BrandLogo } from "@/components/brand-logo";
-import { Mail, Lock } from "lucide-react";
+import { Mail, Lock, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
@@ -17,13 +19,37 @@ export const Route = createFileRoute("/login")({
   component: LoginPage,
 });
 
+
 function LoginPage() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [touched, setTouched] = useState({ email: false, password: false });
+  const [loading, setLoading] = useState(false);
 
   const emailError = touched.email && !/^\S+@\S+\.\S+$/.test(email) ? "Enter a valid email" : "";
   const passwordError = touched.password && password.length < 6 ? "Min 6 characters" : "";
+
+  const canSubmit = /^\S+@\S+\.\S+$/.test(email) && password.length >= 6;
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setTouched({ email: true, password: true });
+    if (!canSubmit || loading) return;
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.trim().toLowerCase(),
+      password,
+    });
+    setLoading(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Welcome back!");
+    navigate({ to: "/student" });
+  }
+
 
   return (
     <div className="bg-hero flex min-h-screen items-center justify-center px-4 py-12">
@@ -37,13 +63,8 @@ function LoginPage() {
             <CardDescription>Log in to continue your study journey.</CardDescription>
           </CardHeader>
           <CardContent>
-            <form
-              className="space-y-4"
-              onSubmit={(e) => {
-                e.preventDefault();
-                setTouched({ email: true, password: true });
-              }}
-            >
+            <form className="space-y-4" onSubmit={handleSubmit}>
+
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <div className="relative">

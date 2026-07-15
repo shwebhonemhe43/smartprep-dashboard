@@ -1,7 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import {
+  getOrGenerateSessionNotes,
+  type SessionNotes,
+} from "@/lib/study-session-notes.functions";
+import {
+  getOrGenerateSessionTest,
+  submitSessionTest,
+  type TestResult,
+} from "@/lib/study-session-tests.functions";
+import { Textarea } from "@/components/ui/textarea";
+import { FileText, ClipboardCheck, CheckCircle2 } from "lucide-react";
 import {
   ArrowLeft,
   BookOpen,

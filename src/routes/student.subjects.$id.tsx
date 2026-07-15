@@ -124,7 +124,8 @@ function SubjectDetail() {
                   </div>
                 </CardHeader>
               </Card>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

@@ -38,6 +38,7 @@ export const getOrGenerateTopicFlashcards = createServerFn({ method: "POST" })
         updated_at: existing.updated_at,
         topic_name: topicName,
         subject: topic.subjects,
+        subject_id: topic.subject_id,
       };
     }
 

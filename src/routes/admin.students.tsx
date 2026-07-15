@@ -138,6 +138,7 @@ function Students() {
                   <TableHead className="py-3 font-semibold text-foreground">Email</TableHead>
                   <TableHead className="py-3 font-semibold text-foreground">Program</TableHead>
                   <TableHead className="py-3 font-semibold text-foreground">Status</TableHead>
+                  <TableHead className="py-3 font-semibold text-foreground">Register Status</TableHead>
                   <TableHead className="py-3 text-right font-semibold text-foreground">
                     Actions
                   </TableHead>

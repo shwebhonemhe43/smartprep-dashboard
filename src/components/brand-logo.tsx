@@ -42,7 +42,7 @@ export function BrandLogo({
           className={cn(
             "font-display font-bold tracking-tight whitespace-nowrap text-foreground",
             textSizeClasses[size],
-            variant === "on-dark" && "text-white"
+            variant === "on-dark" && "dark:text-white"
           )}
         >
           Grab That Distinction

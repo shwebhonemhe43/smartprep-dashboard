@@ -8,6 +8,67 @@ const SLOT_TIMES: Record<string, { start: string; end: string; minutes: number }
   evening: { start: "19:00", end: "22:00", minutes: 180 },
 };
 
+const PROFICIENCY_WEIGHT: Record<"strong" | "medium" | "weak", number> = {
+  weak: 3,
+  medium: 2,
+  strong: 1,
+};
+
+function toMinutes(t: string): number {
+  const [h, m] = t.split(":").map((n) => parseInt(n, 10));
+  return h * 60 + (m || 0);
+}
+
+function intervalsOverlap(a1: string, a2: string, b1: string, b2: string): boolean {
+  return toMinutes(a1) < toMinutes(b2) && toMinutes(b1) < toMinutes(a2);
+}
+
+function withinSlot(itemStart: string, itemEnd: string, slotStart: string, slotEnd: string): boolean {
+  return toMinutes(itemStart) >= toMinutes(slotStart) && toMinutes(itemEnd) <= toMinutes(slotEnd) && toMinutes(itemStart) < toMinutes(itemEnd);
+}
+
+type BusyByDate = Record<string, Array<{ start: string; end: string; proficiency: string | null; plan_id: string }>>;
+
+async function fetchBusyFromOtherPlans(
+  supabase: any,
+  userId: string,
+  fromDate: string,
+  toDate: string,
+  excludePlanId: string | null,
+): Promise<BusyByDate> {
+  let q = supabase
+    .from("study_plan_items")
+    .select("study_plan_id, date, start_time, end_time")
+    .eq("student_id", userId)
+    .gte("date", fromDate)
+    .lte("date", toDate);
+  if (excludePlanId) q = q.neq("study_plan_id", excludePlanId);
+  const { data: items } = await q;
+  const rows = (items ?? []) as Array<{ study_plan_id: string; date: string; start_time: string | null; end_time: string | null }>;
+  const planIds = Array.from(new Set(rows.map((r) => r.study_plan_id)));
+  const profBy = new Map<string, string | null>();
+  if (planIds.length > 0) {
+    const { data: plans } = await supabase
+      .from("study_plans")
+      .select("id, subject_proficiency")
+      .in("id", planIds);
+    for (const p of (plans ?? []) as Array<{ id: string; subject_proficiency: string | null }>) {
+      profBy.set(p.id, p.subject_proficiency);
+    }
+  }
+  const busy: BusyByDate = {};
+  for (const r of rows) {
+    if (!r.start_time || !r.end_time) continue;
+    (busy[r.date] ??= []).push({
+      start: r.start_time.slice(0, 5),
+      end: r.end_time.slice(0, 5),
+      proficiency: profBy.get(r.study_plan_id) ?? null,
+      plan_id: r.study_plan_id,
+    });
+  }
+  return busy;
+}
+
 const availableHoursSchema = z.record(
   z.string(),
   z.array(z.enum(["morning", "afternoon", "evening"])),

@@ -66,7 +66,7 @@ function NotesPage() {
 
           <Card className="border-border/60 shadow-soft">
             <CardContent className="p-6 sm:p-8">
-              <article className="prose prose-slate max-w-none dark:prose-invert prose-headings:font-display prose-h1:text-3xl prose-h2:text-xl prose-h2:mt-6 prose-h3:text-base prose-li:my-1">
+              <article className="max-w-none space-y-3 text-[15px] leading-relaxed text-foreground [&_h1]:font-display [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mt-2 [&_h2]:font-display [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:mt-6 [&_h2]:mb-2 [&_h3]:font-semibold [&_h3]:text-base [&_h3]:mt-4 [&_p]:my-2 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_strong]:font-semibold [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-sm">
                 <ReactMarkdown>{data.notes_content}</ReactMarkdown>
               </article>
             </CardContent>

@@ -62,7 +62,7 @@ export const registerStudent = createServerFn({ method: "POST" })
 
     const { error: updErr } = await supabaseAdmin
       .from("pre_registered_students")
-      .update({ status: "registered" })
+      .update({ status: "registered", register_status: "admin-register" })
       .eq("id", pre.id);
 
     if (updErr) {

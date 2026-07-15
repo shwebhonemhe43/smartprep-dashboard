@@ -101,6 +101,7 @@ export type Database = {
           id: string
           phone_number: string
           program: string
+          register_status: string
           status: string
           student_id: string
         }
@@ -111,6 +112,7 @@ export type Database = {
           id?: string
           phone_number: string
           program?: string
+          register_status?: string
           status?: string
           student_id: string
         }
@@ -121,6 +123,7 @@ export type Database = {
           id?: string
           phone_number?: string
           program?: string
+          register_status?: string
           status?: string
           student_id?: string
         }

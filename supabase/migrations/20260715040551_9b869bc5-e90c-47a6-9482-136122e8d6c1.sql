@@ -1,0 +1,1 @@
+ALTER TABLE public.pre_registered_students ADD COLUMN IF NOT EXISTS register_status text NOT NULL DEFAULT 'pre-register';

@@ -21,7 +21,6 @@ import {
   ChevronRight,
   Clock,
   Loader2,
-  Pencil,
   Plus,
   Sparkles,
   Target,

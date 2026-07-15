@@ -85,13 +85,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "AI-powered personalized study plans, smart notes, flashcards and quizzes designed for NCC Level 4 Computing students.",
       },
-      { property: "og:title", content: "NCC SmartPrep" },
+      { property: "og:title", content: "NCC SmartPrep — AI-powered study plans for NCC Computing" },
       {
         property: "og:description",
-        content: "Study smarter with personalized AI study plans built for NCC Computing.",
+        content: "AI-powered personalized study plans, smart notes, flashcards and quizzes designed for NCC Level 4 Computing students.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "NCC SmartPrep — AI-powered study plans for NCC Computing" },
+      { name: "twitter:description", content: "AI-powered personalized study plans, smart notes, flashcards and quizzes designed for NCC Level 4 Computing students." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/cdc91efb-b8b1-462c-99ba-2d9d3d076b82/id-preview-8ca755c3--d8780dea-cfce-4d17-9011-9dd9be2c586e.lovable.app-1784084007854.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/cdc91efb-b8b1-462c-99ba-2d9d3d076b82/id-preview-8ca755c3--d8780dea-cfce-4d17-9011-9dd9be2c586e.lovable.app-1784084007854.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },

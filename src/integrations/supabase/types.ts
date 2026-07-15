@@ -495,6 +495,94 @@ export type Database = {
           },
         ]
       }
+      study_session_notes: {
+        Row: {
+          created_at: string
+          id: string
+          notes_content: string
+          student_id: string
+          study_plan_item_id: string
+          subject_id: string | null
+          topic_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes_content: string
+          student_id: string
+          study_plan_item_id: string
+          subject_id?: string | null
+          topic_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes_content?: string
+          student_id?: string
+          study_plan_item_id?: string
+          subject_id?: string | null
+          topic_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_session_notes_study_plan_item_id_fkey"
+            columns: ["study_plan_item_id"]
+            isOneToOne: false
+            referencedRelation: "study_plan_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      study_session_tests: {
+        Row: {
+          answers_json: Json | null
+          completed_at: string | null
+          created_at: string
+          feedback: string | null
+          id: string
+          questions_json: Json
+          score: number | null
+          student_id: string
+          study_plan_item_id: string
+          updated_at: string
+        }
+        Insert: {
+          answers_json?: Json | null
+          completed_at?: string | null
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          questions_json: Json
+          score?: number | null
+          student_id: string
+          study_plan_item_id: string
+          updated_at?: string
+        }
+        Update: {
+          answers_json?: Json | null
+          completed_at?: string | null
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          questions_json?: Json
+          score?: number | null
+          student_id?: string
+          study_plan_item_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_session_tests_study_plan_item_id_fkey"
+            columns: ["study_plan_item_id"]
+            isOneToOne: false
+            referencedRelation: "study_plan_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subjects: {
         Row: {
           created_at: string

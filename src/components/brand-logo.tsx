@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-start";
+import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import logoAsset from "@/assets/gtd-logo.png.asset.json";
 

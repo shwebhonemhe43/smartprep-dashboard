@@ -1,13 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { BookMarked, CheckCircle2, ListChecks, CalendarClock, Clock, Loader2, CircleDashed, Heart } from "lucide-react";
+import { useState } from "react";
+import { BookMarked, CheckCircle2, ListChecks, CalendarClock, Clock, Loader2, CircleDashed, Heart, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 import { StatCard } from "@/components/dashboard-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { getStudentDashboard } from "@/lib/student-dashboard.functions";
 import { togglePlanItem } from "@/lib/study-plans.functions";
@@ -26,6 +35,25 @@ function timeAgo(iso: string): string {
   const d = Math.floor(h / 24);
   if (d < 7) return `${d}d ago`;
   return new Date(iso).toLocaleDateString();
+}
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      className="h-8 w-8 shrink-0"
+      onClick={async () => {
+        await navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+      }}
+      aria-label="Copy to clipboard"
+    >
+      {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+    </Button>
+  );
 }
 
 function StudentDashboard() {
@@ -103,24 +131,52 @@ function StudentDashboard() {
       </div>
 
       {/* Donation CTA */}
-      <Card className="border-border/60 shadow-soft">
-        <CardContent className="flex flex-col items-start gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-4">
-            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
-              <Heart className="h-6 w-6" />
-            </span>
-            <div>
-              <h3 className="font-display text-lg font-semibold">Support Study Buddy</h3>
-              <p className="mt-1 max-w-xl text-sm text-muted-foreground">
-                Your contribution helps us keep the platform free and keep building tools that help students succeed.
-              </p>
+      <Dialog>
+        <Card className="border-border/60 shadow-soft">
+          <CardContent className="flex flex-col items-start gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-4">
+              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+                <Heart className="h-6 w-6" />
+              </span>
+              <div>
+                <h3 className="font-display text-lg font-semibold">Support Study Buddy</h3>
+                <p className="mt-1 max-w-xl text-sm text-muted-foreground">
+                  Your contribution helps us keep the platform free and keep building tools that help students succeed.
+                </p>
+              </div>
+            </div>
+            <DialogTrigger asChild>
+              <Button variant="default" size="sm" className="shrink-0">
+                Donate now
+              </Button>
+            </DialogTrigger>
+          </CardContent>
+        </Card>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display">Support Study Buddy</DialogTitle>
+            <DialogDescription>
+              Send your donation via Kpay to the account below.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="rounded-xl border border-border/60 bg-muted/40 p-4">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Account name</p>
+              <div className="mt-1 flex items-center justify-between gap-3">
+                <p className="font-display text-lg font-semibold">Grab That Distinction Admin</p>
+                <CopyButton text="Grab That Distinction Admin" />
+              </div>
+            </div>
+            <div className="rounded-xl border border-border/60 bg-muted/40 p-4">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Kpay number</p>
+              <div className="mt-1 flex items-center justify-between gap-3">
+                <p className="font-display text-lg font-semibold">09123456456</p>
+                <CopyButton text="09123456456" />
+              </div>
             </div>
           </div>
-          <Button variant="default" size="sm" className="shrink-0">
-            Donate now
-          </Button>
-        </CardContent>
-      </Card>
+        </DialogContent>
+      </Dialog>
 
       {/* Today's Study Plan */}
       <Card className="border-border/60 shadow-soft">

@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { BookMarked, Loader2 } from "lucide-react";
+import { BookMarked, Clock, Loader2, ArrowRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { listMySubjects } from "@/lib/student-subjects.functions";
 
 export const Route = createFileRoute("/student/subjects/")({
@@ -16,6 +18,7 @@ function StudentSubjects() {
   const { data, isLoading } = useQuery({
     queryKey: ["my-subjects"],
     queryFn: () => listFn(),
+    refetchOnWindowFocus: true,
   });
 
   const program = data?.program ?? null;
@@ -50,27 +53,45 @@ function StudentSubjects() {
         </Card>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {subjects.map((s) => (
-            <Link
+          {subjects.map((s: any) => (
+            <Card
               key={s.id}
-              to="/student/subjects/$id"
-              params={{ id: s.id }}
-              className="block"
+              className="flex h-full flex-col rounded-2xl border-border/60 shadow-soft transition hover:shadow-elegant hover:border-primary/40"
             >
-              <Card className="h-full rounded-2xl border-border/60 shadow-soft transition hover:shadow-elegant hover:border-primary/40">
-                <CardHeader className="space-y-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-mono text-xs text-muted-foreground">{s.subject_code}</span>
-                    <Badge variant="secondary">{s.level}</Badge>
+              <CardHeader className="space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-mono text-xs text-muted-foreground">{s.subject_code}</span>
+                  <Badge variant="secondary">{s.level}</Badge>
+                </div>
+                <CardTitle className="font-display text-lg">{s.subject_name}</CardTitle>
+                {s.description && (
+                  <CardDescription className="line-clamp-3">{s.description}</CardDescription>
+                )}
+              </CardHeader>
+              <CardContent className="mt-auto space-y-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Clock className="h-4 w-4 text-primary" />
+                  <span>
+                    <span className="font-medium text-foreground">{s.study_hours}</span> study hrs
+                  </span>
+                  <span className="text-border">•</span>
+                  <span>{s.topic_count} topics</span>
+                </div>
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Progress</span>
+                    <span className="font-mono font-semibold text-foreground">{s.progress}%</span>
                   </div>
-                  <CardTitle className="font-display text-lg">{s.subject_name}</CardTitle>
-                  {s.description && (
-                    <CardDescription className="line-clamp-3">{s.description}</CardDescription>
-                  )}
-                </CardHeader>
-              </Card>
-            </Link>
-
+                  <Progress value={s.progress} className="h-2" />
+                </div>
+                <Button asChild size="sm" className="w-full">
+                  <Link to="/student/subjects/$id" params={{ id: s.id }}>
+                    {s.progress > 0 ? "Continue" : "Enroll"}
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
           ))}
         </div>
       )}

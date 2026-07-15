@@ -66,7 +66,7 @@ function Students() {
     if (!q) return rows;
     return rows.filter(
       (r) =>
-        r.student_id.toLowerCase().includes(q) ||
+        (r.student_id ?? "").toLowerCase().includes(q) ||
         r.full_name.toLowerCase().includes(q) ||
         r.email.toLowerCase().includes(q) ||
         (r.program ?? "").toLowerCase().includes(q),
@@ -162,7 +162,7 @@ function Students() {
                 ) : (
                   filtered.map((r) => (
                     <TableRow key={r.id}>
-                      <TableCell className="font-mono text-sm">{r.student_id}</TableCell>
+                      <TableCell className="font-mono text-sm">{r.student_id ?? "—"}</TableCell>
                       <TableCell className="font-medium">{r.full_name}</TableCell>
                       <TableCell className="text-muted-foreground">{r.email}</TableCell>
                       <TableCell>{r.program}</TableCell>
@@ -362,7 +362,7 @@ function StudentProfilesCard() {
               ) : (
                 data.map((s) => (
                   <TableRow key={s.id}>
-                    <TableCell className="font-mono text-sm">{s.student_id}</TableCell>
+                    <TableCell className="font-mono text-sm">{s.student_id ?? "—"}</TableCell>
                     <TableCell className="font-medium">{s.full_name}</TableCell>
                     <TableCell className="text-muted-foreground">{s.email}</TableCell>
                     <TableCell>{s.program ?? "—"}</TableCell>

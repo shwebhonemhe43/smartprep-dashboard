@@ -103,7 +103,7 @@ export type Database = {
           program: string
           register_status: string
           status: string
-          student_id: string
+          student_id: string | null
         }
         Insert: {
           created_at?: string
@@ -114,7 +114,7 @@ export type Database = {
           program?: string
           register_status?: string
           status?: string
-          student_id: string
+          student_id?: string | null
         }
         Update: {
           created_at?: string
@@ -125,7 +125,7 @@ export type Database = {
           program?: string
           register_status?: string
           status?: string
-          student_id?: string
+          student_id?: string | null
         }
         Relationships: []
       }
@@ -138,7 +138,7 @@ export type Database = {
           full_name: string
           id: string
           program: string
-          student_id: string
+          student_id: string | null
         }
         Insert: {
           approval_status?: string
@@ -148,7 +148,7 @@ export type Database = {
           full_name: string
           id?: string
           program: string
-          student_id: string
+          student_id?: string | null
         }
         Update: {
           approval_status?: string
@@ -158,7 +158,7 @@ export type Database = {
           full_name?: string
           id?: string
           program?: string
-          student_id?: string
+          student_id?: string | null
         }
         Relationships: []
       }

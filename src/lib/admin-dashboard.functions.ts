@@ -94,28 +94,35 @@ export const getAdminActivity = createServerFn({ method: "GET" })
         .select("full_name, created_at, approval_status")
         .eq("approval_status", "approved")
         .order("created_at", { ascending: false })
-        .limit(5),
+        .limit(8),
       supabaseAdmin
         .from("student_profiles")
         .select("full_name, created_at")
         .order("created_at", { ascending: false })
-        .limit(5),
+        .limit(8),
       supabaseAdmin
         .from("lecture_files")
         .select("file_name, created_at")
         .order("created_at", { ascending: false })
-        .limit(5),
+        .limit(8),
       supabaseAdmin
         .from("old_questions")
         .select("file_name, created_at")
         .order("created_at", { ascending: false })
-        .limit(5),
+        .limit(8),
       supabaseAdmin
         .from("study_plans")
         .select("plan_type, created_at")
         .order("created_at", { ascending: false })
-        .limit(5),
+        .limit(8),
     ]);
+
+    for (const res of [approvals, students, lectures, questions, plans]) {
+      if (res.error) {
+        console.error("[getAdminActivity] query error:", res.error);
+        throw new Error(res.error.message);
+      }
+    }
 
     const items: (AdminActivity & { ts: number })[] = [];
 
@@ -161,5 +168,5 @@ export const getAdminActivity = createServerFn({ method: "GET" })
     }
 
     items.sort((a, b) => b.ts - a.ts);
-    return items.slice(0, 8).map(({ ts: _ts, ...rest }) => rest);
+    return items.slice(0, 12).map(({ ts: _ts, ...rest }) => rest);
   });

@@ -1,11 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { BookMarked, CheckCircle2, ListChecks, CalendarClock } from "lucide-react";
 import { StatCard } from "@/components/dashboard-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import { listMyEnrollments } from "@/lib/enrollments.functions";
+import { getLatestStudyPlan } from "@/lib/study-plans.functions";
 
 export const Route = createFileRoute("/student/")({
   component: StudentDashboard,
@@ -20,11 +22,35 @@ const activity = [
 
 function StudentDashboard() {
   const enrollmentsFn = useServerFn(listMyEnrollments);
+  const planFn = useServerFn(getLatestStudyPlan);
   const { data: enrollments } = useQuery({
     queryKey: ["my-enrollments"],
     queryFn: () => enrollmentsFn(),
   });
+  const { data: planData } = useQuery({
+    queryKey: ["latest-study-plan"],
+    queryFn: () => planFn(),
+  });
   const totalEnrolled = enrollments?.length ?? 0;
+
+  // Group this week's plan items by title/subject, compute progress
+  const now = new Date();
+  const weekEnd = new Date(now);
+  weekEnd.setDate(now.getDate() + 7);
+  const weekItems = (planData?.items ?? []).filter((it) => {
+    const d = new Date(it.date);
+    return d >= new Date(now.toDateString()) && d <= weekEnd;
+  });
+  const byTitle = new Map<string, { name: string; total: number; done: number }>();
+  for (const it of weekItems) {
+    const key = it.title;
+    const cur = byTitle.get(key) ?? { name: it.title, total: 0, done: 0 };
+    cur.total += 1;
+    if (it.completed) cur.done += 1;
+    byTitle.set(key, cur);
+  }
+  const weekPlan = Array.from(byTitle.values()).slice(0, 5);
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -55,23 +81,32 @@ function StudentDashboard() {
         </Card>
 
         <Card className="border-border/60 shadow-soft">
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="font-display text-lg">This week's plan</CardTitle>
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/student/study-plan">View</Link>
+            </Button>
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
-            {[
-              { name: "Database Design", pct: 65 },
-              { name: "Networking", pct: 40 },
-              { name: "Programming", pct: 82 },
-            ].map((s) => (
-              <div key={s.name} className="space-y-1.5">
-                <div className="flex justify-between">
-                  <span className="font-medium">{s.name}</span>
-                  <span className="text-muted-foreground">{s.pct}%</span>
-                </div>
-                <Progress value={s.pct} />
-              </div>
-            ))}
+            {weekPlan.length === 0 ? (
+              <p className="text-xs text-muted-foreground">
+                No active study plan this week.{" "}
+                <Link to="/student/study-plan" className="text-primary underline">Create one</Link>.
+              </p>
+            ) : (
+              weekPlan.map((s) => {
+                const pct = s.total > 0 ? Math.round((s.done / s.total) * 100) : 0;
+                return (
+                  <div key={s.name} className="space-y-1.5">
+                    <div className="flex justify-between">
+                      <span className="truncate font-medium">{s.name}</span>
+                      <span className="text-muted-foreground">{pct}%</span>
+                    </div>
+                    <Progress value={pct} />
+                  </div>
+                );
+              })
+            )}
           </CardContent>
         </Card>
       </div>

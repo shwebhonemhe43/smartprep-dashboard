@@ -87,6 +87,9 @@ function AdminDashboard() {
         </p>
       </div>
 
+      <PendingApprovals />
+
+
       {/* Stat cards */}
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((s) => (

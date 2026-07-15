@@ -270,7 +270,7 @@ Expected: ${q.expected_answer}
 Student answer: ${data.short_answers[i] ?? ""}`).join("\n\n")}`;
 
       const raw = await callAI(apiKey, [
-        { role: "system", content: "You are a fair academic grader. Output only JSON." },
+        { role: "system", content: "You are a fair academic grader. Output ONLY a single raw JSON object with no markdown fences and no surrounding text." },
         { role: "user", content: evalPrompt },
       ], true);
       const parsed = extractJson(raw);

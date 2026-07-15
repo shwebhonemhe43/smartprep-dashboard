@@ -1,12 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useEffect } from "react";
 import { ArrowLeft, Loader2, Sparkles } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getOrGenerateTopicNotes } from "@/lib/topic-notes.functions";
+import { markTopicProgress } from "@/lib/topic-progress.functions";
 
 export const Route = createFileRoute("/student/notes/$topicId")({
   head: () => ({ meta: [{ title: "Notes — NCC SmartPrep" }] }),
@@ -16,12 +18,19 @@ export const Route = createFileRoute("/student/notes/$topicId")({
 function NotesPage() {
   const { topicId } = Route.useParams();
   const fn = useServerFn(getOrGenerateTopicNotes);
+  const markFn = useServerFn(markTopicProgress);
   const { data, isLoading, error } = useQuery({
     queryKey: ["topic-notes", topicId],
     queryFn: () => fn({ data: { topic_id: topicId } }),
     staleTime: Infinity,
     retry: false,
   });
+
+  useEffect(() => {
+    if (data?.notes_content) {
+      markFn({ data: { topic_id: topicId, kind: "notes" } }).catch(() => {});
+    }
+  }, [data?.notes_content, topicId, markFn]);
 
   return (
     <div className="space-y-6">

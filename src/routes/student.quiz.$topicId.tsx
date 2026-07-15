@@ -1,12 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ChevronLeft, ChevronRight, Loader2, Sparkles, Check, X, RotateCw } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getOrGenerateTopicQuiz } from "@/lib/topic-quiz.functions";
+import { markTopicProgress } from "@/lib/topic-progress.functions";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/student/quiz/$topicId")({
@@ -17,6 +18,7 @@ export const Route = createFileRoute("/student/quiz/$topicId")({
 function QuizPage() {
   const { topicId } = Route.useParams();
   const fn = useServerFn(getOrGenerateTopicQuiz);
+  const markFn = useServerFn(markTopicProgress);
   const { data, isLoading, error } = useQuery({
     queryKey: ["topic-quiz", topicId],
     queryFn: () => fn({ data: { topic_id: topicId } }),
@@ -37,6 +39,12 @@ function QuizPage() {
     () => quiz.reduce((n, q, i) => (answers[i] === q.answer_index ? n + 1 : n), 0),
     [quiz, answers],
   );
+
+  useEffect(() => {
+    if (submitted) {
+      markFn({ data: { topic_id: topicId, kind: "quiz" } }).catch(() => {});
+    }
+  }, [submitted, topicId, markFn]);
 
   const reset = () => {
     setAnswers({});

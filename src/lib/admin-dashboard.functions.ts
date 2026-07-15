@@ -112,7 +112,7 @@ export const getAdminActivity = createServerFn({ method: "GET" })
         .limit(5),
       supabaseAdmin
         .from("study_plans")
-        .select("title, created_at")
+        .select("plan_type, created_at")
         .order("created_at", { ascending: false })
         .limit(5),
     ]);

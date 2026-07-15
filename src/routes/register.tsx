@@ -146,14 +146,6 @@ function RegisterPage() {
                 {errors.student_id && <p className="text-xs text-destructive">{errors.student_id}</p>}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <div className="relative">
-                  <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input id="name" className="pl-9" placeholder="Jane Doe" value={form.name} onChange={set("name")} onBlur={blur("name")} />
-                </div>
-                {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
-              </div>
-              <div className="space-y-2">
                 <Label htmlFor="email">Outlook Email</Label>
                 <div className="relative">
                   <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

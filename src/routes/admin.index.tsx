@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import {
   Users,
   BookOpen,
@@ -6,8 +8,15 @@ import {
   BarChart3,
   UserPlus,
   Upload,
+  Check,
+  Loader2,
+  UserCheck,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { approveStudent, listPendingApprovals } from "@/lib/approvals.functions";
 
 export const Route = createFileRoute("/admin/")({
   component: AdminDashboard,

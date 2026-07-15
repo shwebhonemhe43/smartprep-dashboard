@@ -1,13 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { BookMarked, CheckCircle2, ListChecks, CalendarClock, Clock, Loader2, CircleDashed, Heart } from "lucide-react";
+import { useState } from "react";
+import { BookMarked, CheckCircle2, ListChecks, CalendarClock, Clock, Loader2, CircleDashed, Heart, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 import { StatCard } from "@/components/dashboard-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { getStudentDashboard } from "@/lib/student-dashboard.functions";
 import { togglePlanItem } from "@/lib/study-plans.functions";

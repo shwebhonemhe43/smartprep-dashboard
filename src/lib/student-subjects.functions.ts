@@ -15,14 +15,50 @@ export const listMySubjects = createServerFn({ method: "GET" })
     const program = profile?.program ?? null;
     if (!program) return { program: null, subjects: [] as Array<any> };
 
-    const { data, error } = await context.supabase
+    const { data: subjects, error } = await context.supabase
       .from("subjects")
       .select("id, subject_code, subject_name, level, description")
       .eq("level", program)
       .order("subject_code", { ascending: true });
     if (error) throw new Error(error.message);
-    return { program, subjects: data ?? [] };
+    const subjList = subjects ?? [];
+    if (subjList.length === 0) return { program, subjects: [] as Array<any> };
+
+    // Fetch all topics for these subjects
+    const subjectIds = subjList.map((s) => s.id);
+    const { data: topics, error: tErr } = await context.supabase
+      .from("lecture_files")
+      .select("id, subject_id")
+      .in("subject_id", subjectIds);
+    if (tErr) throw new Error(tErr.message);
+    const topicList = topics ?? [];
+    const topicIds = topicList.map((t) => t.id);
+
+    // Fetch student progress for these topics
+    let progressRows: Array<{ topic_id: string; progress_percentage: number }> = [];
+    if (topicIds.length > 0) {
+      const { data: pr, error: prErr } = await context.supabase
+        .from("student_topic_progress")
+        .select("topic_id, progress_percentage")
+        .eq("student_id", context.userId)
+        .in("topic_id", topicIds);
+      if (prErr) throw new Error(prErr.message);
+      progressRows = pr ?? [];
+    }
+    const progressByTopic = new Map(progressRows.map((p) => [p.topic_id, p.progress_percentage]));
+
+    const enriched = subjList.map((s) => {
+      const subjTopics = topicList.filter((t) => t.subject_id === s.id);
+      const topicCount = subjTopics.length;
+      const studyHours = topicCount; // 1 hr per topic estimate
+      const totalPct = subjTopics.reduce((sum, t) => sum + (progressByTopic.get(t.id) ?? 0), 0);
+      const progress = topicCount > 0 ? Math.round(totalPct / topicCount) : 0;
+      return { ...s, topic_count: topicCount, study_hours: studyHours, progress };
+    });
+
+    return { program, subjects: enriched };
   });
+
 
 const idSchema = z.object({ id: z.string().uuid() });
 const signSchema = z.object({ path: z.string().trim().min(1) });

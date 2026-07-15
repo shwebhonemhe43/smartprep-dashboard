@@ -138,9 +138,16 @@ function StudyPlanPage() {
                   Created {new Date(plan.created_at).toLocaleDateString()}
                 </p>
               </div>
-              <Badge variant={plan.plan_type === "topic" ? "secondary" : "default"} className="w-fit capitalize">
-                {plan.plan_type} based
-              </Badge>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant={plan.plan_type === "topic" ? "secondary" : "default"} className="w-fit capitalize">
+                  {plan.plan_type} based
+                </Badge>
+                {plan.subject_proficiency && (
+                  <Badge variant="outline" className="w-fit capitalize">
+                    {plan.subject_proficiency} proficiency
+                  </Badge>
+                )}
+              </div>
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
               <Stat icon={BookOpen} label="Subject" value={subject?.subject_code ?? "—"} />

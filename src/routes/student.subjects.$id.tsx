@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, FileText, Loader2, Presentation } from "lucide-react";
+import { ArrowLeft, FileText, Loader2, Presentation, BookOpen, Brain, HelpCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -69,28 +69,44 @@ function SubjectDetail() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="flex flex-col gap-4">
             {topics.map((t, i) => (
-              <button
+              <Card
                 key={t.id}
-                type="button"
-                onClick={() => openTopic(t.file_url)}
-                className="text-left"
+                className="rounded-2xl border-border/60 shadow-soft transition hover:shadow-elegant hover:border-primary/40"
               >
-                <Card className="h-full rounded-2xl border-border/60 shadow-soft transition hover:shadow-elegant hover:border-primary/40">
-                  <CardHeader className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="inline-flex h-8 min-w-8 items-center justify-center rounded-full bg-primary/10 px-2 font-mono text-xs font-semibold text-primary">
-                        {String(i + 1).padStart(2, "0")}
-                      </span>
-                      <Presentation className="h-4 w-4 text-muted-foreground" />
+                <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-4">
+                    <span className="inline-flex h-10 min-w-10 items-center justify-center rounded-full bg-primary/10 px-3 font-mono text-sm font-semibold text-primary">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <div className="space-y-1">
+                      <CardTitle className="font-display text-base leading-snug">
+                        {t.file_name.replace(/\.[^.]+$/, "")}
+                      </CardTitle>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Presentation className="h-3.5 w-3.5" />
+                        <span>{t.file_type}</span>
+                      </div>
                     </div>
-                    <CardTitle className="font-display text-base leading-snug">
-                      {t.file_name.replace(/\.[^.]+$/, "")}
-                    </CardTitle>
-                  </CardHeader>
-                </Card>
-              </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button size="sm" variant="outline" onClick={() => openTopic(t.file_url)}>
+                      <BookOpen className="mr-2 h-4 w-4" /> Notes
+                    </Button>
+                    <Button asChild size="sm" variant="outline">
+                      <Link to="/student/quiz">
+                        <HelpCircle className="mr-2 h-4 w-4" /> Quiz
+                      </Link>
+                    </Button>
+                    <Button asChild size="sm" variant="outline">
+                      <Link to="/student/flashcards">
+                        <Brain className="mr-2 h-4 w-4" /> Flashcard
+                      </Link>
+                    </Button>
+                  </div>
+                </CardHeader>
+              </Card>
             ))}
           </div>
         )}

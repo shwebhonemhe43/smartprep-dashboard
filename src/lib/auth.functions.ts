@@ -1,29 +1,25 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-const programLevels = {
-  NCC: ["NCC Level 3", "NCC Level 4", "NCC Level 5"],
-  HNC: ["Level 4"],
-  HND: ["Level 5"],
-} as const;
+const PROGRAM_OPTIONS = [
+  "NCC Level 3",
+  "NCC Level 4",
+  "NCC Level 5",
+  "HNC",
+  "HND",
+] as const;
 
-const registerSchema = z
-  .object({
-    email: z.string().trim().toLowerCase().email(),
-    full_name: z.string().trim().min(1).max(200),
-    password: z.string().min(6).max(200),
-    program: z.enum(["NCC", "HNC", "HND"]),
-    level: z.string().trim().min(1).max(50),
-  })
-  .refine((v) => (programLevels[v.program] as readonly string[]).includes(v.level), {
-    message: "Invalid level for selected program",
-    path: ["level"],
-  });
-
-function deriveStudentIdFromEmail(email: string): string {
-  const local = email.split("@")[0] ?? "";
-  return local.toUpperCase();
-}
+const registerSchema = z.object({
+  student_id: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .regex(/^\d{4}D\d{4}$/, "Student ID must match YYYYDXXXX"),
+  email: z.string().trim().toLowerCase().email(),
+  full_name: z.string().trim().min(1).max(200),
+  password: z.string().min(6).max(200),
+  program: z.enum(PROGRAM_OPTIONS),
+});
 
 export const registerStudent = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => registerSchema.parse(input))
@@ -41,17 +37,16 @@ export const registerStudent = createServerFn({ method: "POST" })
       throw new Error("This student has already registered. Please log in instead.");
     }
 
-    const student_id = pre?.student_id ?? deriveStudentIdFromEmail(data.email);
-    const full_name = pre?.full_name ?? data.full_name;
-    const program = data.program ?? pre?.program ?? "NCC";
-    const level = data.level;
+    const student_id = data.student_id;
+    const full_name = data.full_name;
+    const program = data.program;
 
     // Create the auth user.
     const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({
       email: data.email,
       password: data.password,
       email_confirm: true,
-      user_metadata: { full_name, program, level, student_id },
+      user_metadata: { full_name, program, student_id },
     });
 
     if (createErr || !created?.user) {
@@ -76,7 +71,13 @@ export const registerStudent = createServerFn({ method: "POST" })
     if (pre) {
       await supabaseAdmin
         .from("pre_registered_students")
-        .update({ status: "registered", register_status: "admin-register" })
+        .update({
+          status: "registered",
+          register_status: "self-register",
+          student_id,
+          full_name,
+          program,
+        })
         .eq("id", pre.id);
     } else {
       await supabaseAdmin.from("pre_registered_students").insert({
@@ -86,7 +87,7 @@ export const registerStudent = createServerFn({ method: "POST" })
         phone_number: "",
         program,
         status: "registered",
-        register_status: "admin-register",
+        register_status: "self-register",
       });
     }
 

@@ -19,10 +19,16 @@ const activity = [
 ];
 
 function StudentDashboard() {
+  const enrollmentsFn = useServerFn(listMyEnrollments);
+  const { data: enrollments } = useQuery({
+    queryKey: ["my-enrollments"],
+    queryFn: () => enrollmentsFn(),
+  });
+  const totalEnrolled = enrollments?.length ?? 0;
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard icon={BookMarked} label="Total Subjects" value={6} hint="This semester" accent="primary" />
+        <StatCard icon={BookMarked} label="Total Subjects" value={totalEnrolled} hint="Enrolled" accent="primary" />
         <StatCard icon={CheckCircle2} label="Topics Studied" value={38} hint="of 72" accent="chart-2" />
         <StatCard icon={ListChecks} label="Quiz Progress" value="72%" hint="Avg. accuracy" accent="chart-3" />
         <StatCard icon={CalendarClock} label="Upcoming Exam" value="18d" hint="Database Design" accent="accent" />

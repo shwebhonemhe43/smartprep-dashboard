@@ -164,12 +164,15 @@ function Students() {
                       <TableCell className="text-muted-foreground">{r.email}</TableCell>
                       <TableCell>{r.program}</TableCell>
                       <TableCell>
-                        <Badge
-                          variant={r.status === "approved" ? "default" : "secondary"}
-                          className="capitalize"
-                        >
-                          {r.status}
-                        </Badge>
+                        {r.status === "registered" ? (
+                          <Badge className="bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/20 dark:text-emerald-400">
+                            Registered
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-amber-500/15 text-amber-700 hover:bg-amber-500/20 dark:text-amber-400">
+                            Pending
+                          </Badge>
+                        )}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button

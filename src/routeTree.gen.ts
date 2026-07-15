@@ -17,14 +17,12 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as StudentIndexRouteImport } from './routes/student.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as StudentStudyPlanRouteImport } from './routes/student.study-plan'
-import { Route as StudentResourcesRouteImport } from './routes/student.resources'
 import { Route as StudentQuizRouteImport } from './routes/student.quiz'
 import { Route as StudentProfileRouteImport } from './routes/student.profile'
 import { Route as StudentFlashcardsRouteImport } from './routes/student.flashcards'
 import { Route as AdminLoginRouteImport } from './routes/admin_.login'
 import { Route as AdminSubjectsRouteImport } from './routes/admin.subjects'
 import { Route as AdminStudentsRouteImport } from './routes/admin.students'
-import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminQuestionsRouteImport } from './routes/admin.questions'
 import { Route as AdminLecturesRouteImport } from './routes/admin.lectures'
 import { Route as StudentSubjectsIndexRouteImport } from './routes/student.subjects.index'
@@ -77,11 +75,6 @@ const StudentStudyPlanRoute = StudentStudyPlanRouteImport.update({
   path: '/study-plan',
   getParentRoute: () => StudentRoute,
 } as any)
-const StudentResourcesRoute = StudentResourcesRouteImport.update({
-  id: '/resources',
-  path: '/resources',
-  getParentRoute: () => StudentRoute,
-} as any)
 const StudentQuizRoute = StudentQuizRouteImport.update({
   id: '/quiz',
   path: '/quiz',
@@ -110,11 +103,6 @@ const AdminSubjectsRoute = AdminSubjectsRouteImport.update({
 const AdminStudentsRoute = AdminStudentsRouteImport.update({
   id: '/students',
   path: '/students',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminSettingsRoute = AdminSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminQuestionsRoute = AdminQuestionsRouteImport.update({
@@ -183,14 +171,12 @@ export interface FileRoutesByFullPath {
   '/student': typeof StudentRouteWithChildren
   '/admin/lectures': typeof AdminLecturesRoute
   '/admin/questions': typeof AdminQuestionsRoute
-  '/admin/settings': typeof AdminSettingsRoute
   '/admin/students': typeof AdminStudentsRoute
   '/admin/subjects': typeof AdminSubjectsRoute
   '/admin/login': typeof AdminLoginRoute
   '/student/flashcards': typeof StudentFlashcardsRouteWithChildren
   '/student/profile': typeof StudentProfileRoute
   '/student/quiz': typeof StudentQuizRouteWithChildren
-  '/student/resources': typeof StudentResourcesRoute
   '/student/study-plan': typeof StudentStudyPlanRoute
   '/admin/': typeof AdminIndexRoute
   '/student/': typeof StudentIndexRoute
@@ -210,12 +196,10 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/admin/lectures': typeof AdminLecturesRoute
   '/admin/questions': typeof AdminQuestionsRoute
-  '/admin/settings': typeof AdminSettingsRoute
   '/admin/students': typeof AdminStudentsRoute
   '/admin/subjects': typeof AdminSubjectsRoute
   '/admin/login': typeof AdminLoginRoute
   '/student/profile': typeof StudentProfileRoute
-  '/student/resources': typeof StudentResourcesRoute
   '/student/study-plan': typeof StudentStudyPlanRoute
   '/admin': typeof AdminIndexRoute
   '/student': typeof StudentIndexRoute
@@ -238,14 +222,12 @@ export interface FileRoutesById {
   '/student': typeof StudentRouteWithChildren
   '/admin/lectures': typeof AdminLecturesRoute
   '/admin/questions': typeof AdminQuestionsRoute
-  '/admin/settings': typeof AdminSettingsRoute
   '/admin/students': typeof AdminStudentsRoute
   '/admin/subjects': typeof AdminSubjectsRoute
   '/admin_/login': typeof AdminLoginRoute
   '/student/flashcards': typeof StudentFlashcardsRouteWithChildren
   '/student/profile': typeof StudentProfileRoute
   '/student/quiz': typeof StudentQuizRouteWithChildren
-  '/student/resources': typeof StudentResourcesRoute
   '/student/study-plan': typeof StudentStudyPlanRoute
   '/admin/': typeof AdminIndexRoute
   '/student/': typeof StudentIndexRoute
@@ -269,14 +251,12 @@ export interface FileRouteTypes {
     | '/student'
     | '/admin/lectures'
     | '/admin/questions'
-    | '/admin/settings'
     | '/admin/students'
     | '/admin/subjects'
     | '/admin/login'
     | '/student/flashcards'
     | '/student/profile'
     | '/student/quiz'
-    | '/student/resources'
     | '/student/study-plan'
     | '/admin/'
     | '/student/'
@@ -296,12 +276,10 @@ export interface FileRouteTypes {
     | '/register'
     | '/admin/lectures'
     | '/admin/questions'
-    | '/admin/settings'
     | '/admin/students'
     | '/admin/subjects'
     | '/admin/login'
     | '/student/profile'
-    | '/student/resources'
     | '/student/study-plan'
     | '/admin'
     | '/student'
@@ -323,14 +301,12 @@ export interface FileRouteTypes {
     | '/student'
     | '/admin/lectures'
     | '/admin/questions'
-    | '/admin/settings'
     | '/admin/students'
     | '/admin/subjects'
     | '/admin_/login'
     | '/student/flashcards'
     | '/student/profile'
     | '/student/quiz'
-    | '/student/resources'
     | '/student/study-plan'
     | '/admin/'
     | '/student/'
@@ -412,13 +388,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudentStudyPlanRouteImport
       parentRoute: typeof StudentRoute
     }
-    '/student/resources': {
-      id: '/student/resources'
-      path: '/resources'
-      fullPath: '/student/resources'
-      preLoaderRoute: typeof StudentResourcesRouteImport
-      parentRoute: typeof StudentRoute
-    }
     '/student/quiz': {
       id: '/student/quiz'
       path: '/quiz'
@@ -459,13 +428,6 @@ declare module '@tanstack/react-router' {
       path: '/students'
       fullPath: '/admin/students'
       preLoaderRoute: typeof AdminStudentsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/settings': {
-      id: '/admin/settings'
-      path: '/settings'
-      fullPath: '/admin/settings'
-      preLoaderRoute: typeof AdminSettingsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/questions': {
@@ -551,7 +513,6 @@ declare module '@tanstack/react-router' {
 interface AdminRouteChildren {
   AdminLecturesRoute: typeof AdminLecturesRoute
   AdminQuestionsRoute: typeof AdminQuestionsRoute
-  AdminSettingsRoute: typeof AdminSettingsRoute
   AdminStudentsRoute: typeof AdminStudentsRoute
   AdminSubjectsRoute: typeof AdminSubjectsRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -560,7 +521,6 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminLecturesRoute: AdminLecturesRoute,
   AdminQuestionsRoute: AdminQuestionsRoute,
-  AdminSettingsRoute: AdminSettingsRoute,
   AdminStudentsRoute: AdminStudentsRoute,
   AdminSubjectsRoute: AdminSubjectsRoute,
   AdminIndexRoute: AdminIndexRoute,
@@ -603,7 +563,6 @@ interface StudentRouteChildren {
   StudentFlashcardsRoute: typeof StudentFlashcardsRouteWithChildren
   StudentProfileRoute: typeof StudentProfileRoute
   StudentQuizRoute: typeof StudentQuizRouteWithChildren
-  StudentResourcesRoute: typeof StudentResourcesRoute
   StudentStudyPlanRoute: typeof StudentStudyPlanRoute
   StudentIndexRoute: typeof StudentIndexRoute
   StudentNotesTopicIdRoute: typeof StudentNotesTopicIdRoute
@@ -615,7 +574,6 @@ const StudentRouteChildren: StudentRouteChildren = {
   StudentFlashcardsRoute: StudentFlashcardsRouteWithChildren,
   StudentProfileRoute: StudentProfileRoute,
   StudentQuizRoute: StudentQuizRouteWithChildren,
-  StudentResourcesRoute: StudentResourcesRoute,
   StudentStudyPlanRoute: StudentStudyPlanRoute,
   StudentIndexRoute: StudentIndexRoute,
   StudentNotesTopicIdRoute: StudentNotesTopicIdRoute,

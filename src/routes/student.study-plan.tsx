@@ -9,6 +9,7 @@ import {
   ChevronRight,
   Clock,
   Loader2,
+  Pencil,
   Plus,
   Sparkles,
   Target,
@@ -22,21 +23,34 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
 import {
   createStudyPlan,
+  deleteStudyPlan,
   getStudyPlanById,
   listEnrolledSubjectsForPlan,
   listMyStudyPlans,
   togglePlanItem,
+  updateStudyPlan,
   type StudyPlan,
   type StudyPlanItem,
   type StudyPlanWithStats,
   type SubjectRef,
 } from "@/lib/study-plans.functions";
+
 
 export const Route = createFileRoute("/student/study-plan")({
   head: () => ({ meta: [{ title: "Study Plan — NCC SmartPrep" }] }),
@@ -131,7 +145,12 @@ function StudyPlanPage() {
       ) : (
         <div className="flex flex-col gap-4">
           {plans.map((p) => (
-            <PlanCard key={p.plan.id} entry={p} onOpen={() => setSelectedId(p.plan.id)} />
+            <PlanCard
+              key={p.plan.id}
+              entry={p}
+              onOpen={() => setSelectedId(p.plan.id)}
+              onChanged={() => qc.invalidateQueries({ queryKey: ["my-study-plans"] })}
+            />
           ))}
         </div>
       )}
@@ -139,9 +158,32 @@ function StudyPlanPage() {
   );
 }
 
-function PlanCard({ entry, onOpen }: { entry: StudyPlanWithStats; onOpen: () => void }) {
+function PlanCard({
+  entry,
+  onOpen,
+  onChanged,
+}: {
+  entry: StudyPlanWithStats;
+  onOpen: () => void;
+  onChanged: () => void;
+}) {
   const { plan, subject, total_items, completed_items } = entry;
   const pct = total_items ? Math.round((completed_items / total_items) * 100) : 0;
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const deleteFn = useServerFn(deleteStudyPlan);
+  const deleteMut = useMutation({
+    mutationFn: () => deleteFn({ data: { plan_id: plan.id } }),
+    onSuccess: () => {
+      toast.success("Study plan deleted");
+      setDeleteOpen(false);
+      onChanged();
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Failed to delete plan"),
+  });
+
+  const stop = (e: React.MouseEvent | React.KeyboardEvent) => e.stopPropagation();
+
   return (
     <Card
       role="button"
@@ -174,6 +216,32 @@ function PlanCard({ entry, onOpen }: { entry: StudyPlanWithStats; onOpen: () => 
               {plan.subject_proficiency} proficiency
             </Badge>
           )}
+          <div className="flex items-center gap-1" onClick={stop} onKeyDown={stop}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={(e) => {
+                e.stopPropagation();
+                setEditOpen(true);
+              }}
+              aria-label="Edit study plan"
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-destructive hover:text-destructive"
+              onClick={(e) => {
+                e.stopPropagation();
+                setDeleteOpen(true);
+              }}
+              aria-label="Delete study plan"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
           <ChevronRight className="hidden h-5 w-5 text-muted-foreground sm:block" />
         </div>
       </CardHeader>
@@ -193,7 +261,44 @@ function PlanCard({ entry, onOpen }: { entry: StudyPlanWithStats; onOpen: () => 
           </p>
         </div>
       </CardContent>
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <EditPlanDialog
+          plan={plan}
+          subject={subject}
+          onSaved={() => {
+            setEditOpen(false);
+            onChanged();
+          }}
+        />
+      </Dialog>
+
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent onClick={stop}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this study plan?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes the plan and all its scheduled sessions. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteMut.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deleteMut.isPending}
+              onClick={(e) => {
+                e.preventDefault();
+                deleteMut.mutate();
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteMut.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
+
   );
 }
 
@@ -611,3 +716,187 @@ function CreatePlanDialog({ onCreated }: { onCreated: () => void }) {
     </DialogContent>
   );
 }
+
+function EditPlanDialog({
+  plan,
+  subject,
+  onSaved,
+}: {
+  plan: StudyPlan;
+  subject: SubjectRef | null;
+  onSaved: () => void;
+}) {
+  const updateFn = useServerFn(updateStudyPlan);
+  const [examDate, setExamDate] = useState(plan.exam_date);
+  const [proficiency, setProficiency] = useState<"strong" | "medium" | "weak">(
+    (plan.subject_proficiency as "strong" | "medium" | "weak") ?? "medium",
+  );
+  const [availability, setAvailability] = useState<Record<string, string[]>>(
+    (plan.available_hours as Record<string, string[]>) ?? {},
+  );
+  const [priorities, setPriorities] = useState<string[]>(
+    plan.priorities && plan.priorities.length > 0 ? plan.priorities : [""],
+  );
+
+  const mut = useMutation({
+    mutationFn: (payload: {
+      plan_id: string;
+      exam_date: string;
+      proficiency: "strong" | "medium" | "weak";
+      available_hours: Record<string, string[]>;
+      priorities?: string[];
+    }) => updateFn({ data: payload }),
+    onSuccess: () => {
+      toast.success("Study plan updated");
+      onSaved();
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Failed to update plan"),
+  });
+
+  const toggleSlot = (day: string, slot: string) => {
+    setAvailability((prev) => {
+      const cur = prev[day] ?? [];
+      const next = cur.includes(slot) ? cur.filter((s) => s !== slot) : [...cur, slot];
+      return { ...prev, [day]: next };
+    });
+  };
+
+  const handleSubmit = () => {
+    if (!examDate) return toast.error("Please pick an exam date");
+    const hasAny = Object.values(availability).some((v) => v.length > 0);
+    if (!hasAny) return toast.error("Select at least one available time slot");
+    if (plan.plan_type === "priority") {
+      const cleaned = priorities.map((p) => p.trim()).filter(Boolean);
+      if (cleaned.length === 0) return toast.error("Add at least one priority");
+      mut.mutate({ plan_id: plan.id, exam_date: examDate, proficiency, available_hours: availability, priorities: cleaned });
+    } else {
+      mut.mutate({ plan_id: plan.id, exam_date: examDate, proficiency, available_hours: availability });
+    }
+  };
+
+  return (
+    <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+      <DialogHeader>
+        <DialogTitle className="font-display text-xl">Edit Study Plan</DialogTitle>
+      </DialogHeader>
+
+      <div className="space-y-6 py-2">
+        <div className="rounded-lg border border-border/60 bg-muted/30 p-3 text-sm">
+          <p className="text-xs text-muted-foreground">Subject</p>
+          <p className="font-medium">
+            {subject ? `${subject.subject_name} (${subject.subject_code})` : "—"}
+          </p>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Subject and plan type ({plan.plan_type} based) cannot be changed. Saving will regenerate the schedule.
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="edit-exam-date">Exam date</Label>
+          <Input
+            id="edit-exam-date"
+            type="date"
+            value={examDate}
+            min={new Date(Date.now() + 86400000).toISOString().slice(0, 10)}
+            onChange={(e) => setExamDate(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Subject proficiency</Label>
+          <Select value={proficiency} onValueChange={(v) => setProficiency(v as "strong" | "medium" | "weak")}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="strong">Strong — I understand this subject well (more revision & practice)</SelectItem>
+              <SelectItem value="medium">Medium — I have average understanding (balanced study)</SelectItem>
+              <SelectItem value="weak">Weak — I need more help with this subject (more learning time)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Available study time</Label>
+          <p className="text-xs text-muted-foreground">
+            Morning 09:00–12:00 · Afternoon 14:00–17:00 · Evening 19:00–22:00
+          </p>
+          <div className="overflow-x-auto rounded-lg border border-border/60">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
+                <tr>
+                  <th className="p-2 text-left">Day</th>
+                  {SLOTS.map((s) => (
+                    <th key={s} className="p-2 text-center capitalize">{s}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {WEEKDAYS.map((d) => (
+                  <tr key={d.key} className="border-t border-border/60">
+                    <td className="p-2 font-medium">{d.label}</td>
+                    {SLOTS.map((s) => (
+                      <td key={s} className="p-2 text-center">
+                        <Checkbox
+                          checked={(availability[d.key] ?? []).includes(s)}
+                          onCheckedChange={() => toggleSlot(d.key, s)}
+                        />
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {plan.plan_type === "priority" && (
+          <div className="space-y-2">
+            <Label>Priorities</Label>
+            <div className="space-y-2">
+              {priorities.map((p, i) => (
+                <div key={i} className="flex gap-2">
+                  <Input
+                    placeholder={`Priority ${i + 1}`}
+                    value={p}
+                    onChange={(e) => {
+                      const next = [...priorities];
+                      next[i] = e.target.value;
+                      setPriorities(next);
+                    }}
+                  />
+                  {priorities.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setPriorities(priorities.filter((_, idx) => idx !== i))}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setPriorities([...priorities, ""])}
+              >
+                <Plus className="mr-2 h-4 w-4" /> Add priority
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <DialogFooter>
+        <Button onClick={handleSubmit} disabled={mut.isPending} className="gap-2">
+          {mut.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+          Save & regenerate
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  );
+}
+

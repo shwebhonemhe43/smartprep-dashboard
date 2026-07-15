@@ -138,9 +138,16 @@ function StudyPlanPage() {
                   Created {new Date(plan.created_at).toLocaleDateString()}
                 </p>
               </div>
-              <Badge variant={plan.plan_type === "topic" ? "secondary" : "default"} className="w-fit capitalize">
-                {plan.plan_type} based
-              </Badge>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant={plan.plan_type === "topic" ? "secondary" : "default"} className="w-fit capitalize">
+                  {plan.plan_type} based
+                </Badge>
+                {plan.subject_proficiency && (
+                  <Badge variant="outline" className="w-fit capitalize">
+                    {plan.subject_proficiency} proficiency
+                  </Badge>
+                )}
+              </div>
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
               <Stat icon={BookOpen} label="Subject" value={subject?.subject_code ?? "—"} />
@@ -372,14 +379,17 @@ function CreatePlanDialog({ onCreated }: { onCreated: () => void }) {
 
         <div className="space-y-2">
           <Label>Subject proficiency</Label>
+          <p className="text-xs text-muted-foreground">
+            Tell us how confident you are in this subject so AI can adjust your study time and difficulty.
+          </p>
           <Select value={proficiency} onValueChange={(v) => setProficiency(v as "strong" | "medium" | "weak")}>
             <SelectTrigger>
               <SelectValue placeholder="Select proficiency" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="strong">Strong — mostly advanced practice & revision</SelectItem>
-              <SelectItem value="medium">Medium — balanced coverage</SelectItem>
-              <SelectItem value="weak">Weak — more foundational sessions</SelectItem>
+              <SelectItem value="strong">Strong — I understand this subject well (more revision & practice)</SelectItem>
+              <SelectItem value="medium">Medium — I have average understanding (balanced study)</SelectItem>
+              <SelectItem value="weak">Weak — I need more help with this subject (more learning time)</SelectItem>
             </SelectContent>
           </Select>
         </div>

@@ -1,0 +1,1 @@
+ALTER TABLE public.study_plans ADD COLUMN IF NOT EXISTS subject_proficiency text;

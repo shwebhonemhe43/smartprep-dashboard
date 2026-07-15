@@ -23,7 +23,7 @@ export function BrandLogo({
         src={logoAsset.url}
         alt="Grab That Distinction"
         className={cn(
-          "w-auto rounded-lg bg-white/95 p-1 shadow-sm transition-transform group-hover:scale-[1.02] dark:bg-white/95",
+          "w-auto rounded-lg transition-transform group-hover:scale-[1.02] dark:bg-white/95 dark:p-1 dark:shadow-sm",
           sizeClasses[size]
         )}
       />

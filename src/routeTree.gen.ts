@@ -28,6 +28,7 @@ import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminQuestionsRouteImport } from './routes/admin.questions'
 import { Route as AdminLecturesRouteImport } from './routes/admin.lectures'
 import { Route as StudentSubjectsIndexRouteImport } from './routes/student.subjects.index'
+import { Route as StudentFlashcardsIndexRouteImport } from './routes/student.flashcards.index'
 import { Route as StudentSubjectsIdRouteImport } from './routes/student.subjects.$id'
 import { Route as StudentNotesTopicIdRouteImport } from './routes/student.notes.$topicId'
 import { Route as StudentFlashcardsTopicIdRouteImport } from './routes/student.flashcards.$topicId'
@@ -127,6 +128,11 @@ const StudentSubjectsIndexRoute = StudentSubjectsIndexRouteImport.update({
   path: '/subjects/',
   getParentRoute: () => StudentRoute,
 } as any)
+const StudentFlashcardsIndexRoute = StudentFlashcardsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => StudentFlashcardsRoute,
+} as any)
 const StudentSubjectsIdRoute = StudentSubjectsIdRouteImport.update({
   id: '/subjects/$id',
   path: '/subjects/$id',
@@ -166,6 +172,7 @@ export interface FileRoutesByFullPath {
   '/student/flashcards/$topicId': typeof StudentFlashcardsTopicIdRoute
   '/student/notes/$topicId': typeof StudentNotesTopicIdRoute
   '/student/subjects/$id': typeof StudentSubjectsIdRoute
+  '/student/flashcards/': typeof StudentFlashcardsIndexRoute
   '/student/subjects/': typeof StudentSubjectsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -178,7 +185,6 @@ export interface FileRoutesByTo {
   '/admin/students': typeof AdminStudentsRoute
   '/admin/subjects': typeof AdminSubjectsRoute
   '/admin/login': typeof AdminLoginRoute
-  '/student/flashcards': typeof StudentFlashcardsRouteWithChildren
   '/student/profile': typeof StudentProfileRoute
   '/student/quiz': typeof StudentQuizRoute
   '/student/resources': typeof StudentResourcesRoute
@@ -188,6 +194,7 @@ export interface FileRoutesByTo {
   '/student/flashcards/$topicId': typeof StudentFlashcardsTopicIdRoute
   '/student/notes/$topicId': typeof StudentNotesTopicIdRoute
   '/student/subjects/$id': typeof StudentSubjectsIdRoute
+  '/student/flashcards': typeof StudentFlashcardsIndexRoute
   '/student/subjects': typeof StudentSubjectsIndexRoute
 }
 export interface FileRoutesById {
@@ -213,6 +220,7 @@ export interface FileRoutesById {
   '/student/flashcards/$topicId': typeof StudentFlashcardsTopicIdRoute
   '/student/notes/$topicId': typeof StudentNotesTopicIdRoute
   '/student/subjects/$id': typeof StudentSubjectsIdRoute
+  '/student/flashcards/': typeof StudentFlashcardsIndexRoute
   '/student/subjects/': typeof StudentSubjectsIndexRoute
 }
 export interface FileRouteTypes {
@@ -239,6 +247,7 @@ export interface FileRouteTypes {
     | '/student/flashcards/$topicId'
     | '/student/notes/$topicId'
     | '/student/subjects/$id'
+    | '/student/flashcards/'
     | '/student/subjects/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -251,7 +260,6 @@ export interface FileRouteTypes {
     | '/admin/students'
     | '/admin/subjects'
     | '/admin/login'
-    | '/student/flashcards'
     | '/student/profile'
     | '/student/quiz'
     | '/student/resources'
@@ -261,6 +269,7 @@ export interface FileRouteTypes {
     | '/student/flashcards/$topicId'
     | '/student/notes/$topicId'
     | '/student/subjects/$id'
+    | '/student/flashcards'
     | '/student/subjects'
   id:
     | '__root__'
@@ -285,6 +294,7 @@ export interface FileRouteTypes {
     | '/student/flashcards/$topicId'
     | '/student/notes/$topicId'
     | '/student/subjects/$id'
+    | '/student/flashcards/'
     | '/student/subjects/'
   fileRoutesById: FileRoutesById
 }
@@ -432,6 +442,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudentSubjectsIndexRouteImport
       parentRoute: typeof StudentRoute
     }
+    '/student/flashcards/': {
+      id: '/student/flashcards/'
+      path: '/'
+      fullPath: '/student/flashcards/'
+      preLoaderRoute: typeof StudentFlashcardsIndexRouteImport
+      parentRoute: typeof StudentFlashcardsRoute
+    }
     '/student/subjects/$id': {
       id: '/student/subjects/$id'
       path: '/subjects/$id'
@@ -478,10 +495,12 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface StudentFlashcardsRouteChildren {
   StudentFlashcardsTopicIdRoute: typeof StudentFlashcardsTopicIdRoute
+  StudentFlashcardsIndexRoute: typeof StudentFlashcardsIndexRoute
 }
 
 const StudentFlashcardsRouteChildren: StudentFlashcardsRouteChildren = {
   StudentFlashcardsTopicIdRoute: StudentFlashcardsTopicIdRoute,
+  StudentFlashcardsIndexRoute: StudentFlashcardsIndexRoute,
 }
 
 const StudentFlashcardsRouteWithChildren =

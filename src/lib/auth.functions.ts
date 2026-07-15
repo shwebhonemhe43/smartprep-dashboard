@@ -43,14 +43,15 @@ export const registerStudent = createServerFn({ method: "POST" })
 
     const student_id = pre?.student_id ?? deriveStudentIdFromEmail(data.email);
     const full_name = pre?.full_name ?? data.full_name;
-    const program = pre?.program ?? "NCC";
+    const program = data.program ?? pre?.program ?? "NCC";
+    const level = data.level;
 
     // Create the auth user.
     const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({
       email: data.email,
       password: data.password,
       email_confirm: true,
-      user_metadata: { full_name, program, student_id },
+      user_metadata: { full_name, program, level, student_id },
     });
 
     if (createErr || !created?.user) {

@@ -153,7 +153,7 @@ export const getAdminActivity = createServerFn({ method: "GET" })
     }
     for (const r of plans.data ?? []) {
       items.push({
-        title: `Study plan created: ${r.title ?? "Untitled"}`,
+        title: `Study plan created (${r.plan_type ?? "custom"})`,
         when: r.created_at as string,
         tag: "Study Plans",
         ts: new Date(r.created_at as string).getTime(),

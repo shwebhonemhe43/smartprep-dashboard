@@ -247,6 +247,7 @@ function CreatePlanDialog({ onCreated }: { onCreated: () => void }) {
   const [subjectId, setSubjectId] = useState<string>("");
   const [examDate, setExamDate] = useState("");
   const [planType, setPlanType] = useState<"topic" | "priority">("topic");
+  const [proficiency, setProficiency] = useState<"strong" | "medium" | "weak">("medium");
   const [availability, setAvailability] = useState<Record<string, string[]>>({});
   const [priorities, setPriorities] = useState<string[]>([""]);
 
@@ -255,6 +256,7 @@ function CreatePlanDialog({ onCreated }: { onCreated: () => void }) {
       subject_id: string;
       exam_date: string;
       plan_type: "topic" | "priority";
+      proficiency: "strong" | "medium" | "weak";
       available_hours: Record<string, string[]>;
       priorities?: string[];
     }) => createFn({ data: payload }),
@@ -281,9 +283,9 @@ function CreatePlanDialog({ onCreated }: { onCreated: () => void }) {
     if (planType === "priority") {
       const cleaned = priorities.map((p) => p.trim()).filter(Boolean);
       if (cleaned.length === 0) return toast.error("Add at least one priority");
-      mut.mutate({ subject_id: subjectId, exam_date: examDate, plan_type: planType, available_hours: availability, priorities: cleaned });
+      mut.mutate({ subject_id: subjectId, exam_date: examDate, plan_type: planType, proficiency, available_hours: availability, priorities: cleaned });
     } else {
-      mut.mutate({ subject_id: subjectId, exam_date: examDate, plan_type: planType, available_hours: availability });
+      mut.mutate({ subject_id: subjectId, exam_date: examDate, plan_type: planType, proficiency, available_hours: availability });
     }
   };
 
@@ -366,6 +368,20 @@ function CreatePlanDialog({ onCreated }: { onCreated: () => void }) {
               </div>
             </label>
           </RadioGroup>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Subject proficiency</Label>
+          <Select value={proficiency} onValueChange={(v) => setProficiency(v as "strong" | "medium" | "weak")}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select proficiency" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="strong">Strong — mostly advanced practice & revision</SelectItem>
+              <SelectItem value="medium">Medium — balanced coverage</SelectItem>
+              <SelectItem value="weak">Weak — more foundational sessions</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">

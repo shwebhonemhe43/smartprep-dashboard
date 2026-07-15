@@ -17,6 +17,7 @@ const createSchema = z.object({
   subject_id: z.string().uuid(),
   exam_date: z.string().min(1),
   plan_type: z.enum(["topic", "priority"]),
+  proficiency: z.enum(["strong", "medium", "weak"]),
   available_hours: availableHoursSchema,
   priorities: z.array(z.string().trim().min(1)).optional(),
 });
@@ -227,6 +228,10 @@ Rules:
 - All sessions belong to the single provided subject.
 - For topic plans: distribute the provided topics across sessions, favoring lower progress_percentage.
 - For priority plans: use the provided priority titles for session titles; topic_id must be null.
+- Adjust depth and pacing based on proficiency:
+  * "weak": schedule more foundational sessions, revisit basics, allocate more total time to core topics, add extra practice.
+  * "medium": balanced coverage with moderate revision.
+  * "strong": focus mostly on advanced practice, mock questions and revision; fewer basic sessions.
 - Reserve the final 1-2 days before the exam for revision.
 - Do not create more items than available_slots; leaving slots empty for rest is fine.
 - Output STRICT JSON only.`;
@@ -236,6 +241,7 @@ Rules:
       exam_date: data.exam_date,
       today: today.toISOString().slice(0, 10),
       plan_type: data.plan_type,
+      proficiency: data.proficiency,
       available_slots: availableSlots,
       topics: data.plan_type === "topic" ? topicSummary : [],
       priorities: data.plan_type === "priority" ? data.priorities ?? [] : [],

@@ -77,6 +77,36 @@ export type Database = {
         }
         Relationships: []
       }
+      subjects: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          level: string
+          subject_code: string
+          subject_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          level?: string
+          subject_code: string
+          subject_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          level?: string
+          subject_code?: string
+          subject_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string

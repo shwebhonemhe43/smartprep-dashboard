@@ -50,6 +50,7 @@ export const registerStudent = createServerFn({ method: "POST" })
     // Create the student profile (starts as pending approval).
     const { error: profileErr } = await supabaseAdmin.from("student_profiles").insert({
       auth_user_id: created.user.id,
+      student_id: null as any,
       full_name,
       email: data.email,
       program,
@@ -73,6 +74,7 @@ export const registerStudent = createServerFn({ method: "POST" })
         .eq("id", pre.id);
     } else {
       await supabaseAdmin.from("pre_registered_students").insert({
+        student_id: null as any,
         full_name,
         email: data.email,
         phone_number: "",

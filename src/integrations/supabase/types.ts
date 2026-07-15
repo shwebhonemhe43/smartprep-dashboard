@@ -162,6 +162,51 @@ export type Database = {
         }
         Relationships: []
       }
+      student_topic_flashcards: {
+        Row: {
+          created_at: string
+          flashcards: Json
+          id: string
+          student_id: string
+          subject_id: string
+          topic_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          flashcards: Json
+          id?: string
+          student_id: string
+          subject_id: string
+          topic_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          flashcards?: Json
+          id?: string
+          student_id?: string
+          subject_id?: string
+          topic_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_topic_flashcards_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_topic_flashcards_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "lecture_files"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_topic_notes: {
         Row: {
           created_at: string

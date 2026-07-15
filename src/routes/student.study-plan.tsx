@@ -68,7 +68,6 @@ import {
   listEnrolledSubjectsForPlan,
   listMyStudyPlans,
   togglePlanItem,
-  updateStudyPlan,
   type StudyPlan,
   type StudyPlanItem,
   type StudyPlanWithStats,

@@ -27,6 +27,14 @@ const toggleSchema = z.object({
   completed: z.boolean(),
 });
 
+const updateSchema = z.object({
+  plan_id: z.string().uuid(),
+  exam_date: z.string().min(1),
+  proficiency: z.enum(["strong", "medium", "weak"]),
+  available_hours: availableHoursSchema,
+  priorities: z.array(z.string().trim().min(1)).optional(),
+});
+
 export type StudyPlan = {
   id: string;
   student_id: string;

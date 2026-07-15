@@ -433,6 +433,13 @@ export type Database = {
             referencedRelation: "study_plans"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "study_plan_items_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
         ]
       }
       study_plans: {
@@ -446,6 +453,7 @@ export type Database = {
           priorities: Json | null
           status: string
           student_id: string
+          subject_id: string | null
           updated_at: string
         }
         Insert: {
@@ -458,6 +466,7 @@ export type Database = {
           priorities?: Json | null
           status?: string
           student_id: string
+          subject_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -470,9 +479,18 @@ export type Database = {
           priorities?: Json | null
           status?: string
           student_id?: string
+          subject_id?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "study_plans_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subjects: {
         Row: {

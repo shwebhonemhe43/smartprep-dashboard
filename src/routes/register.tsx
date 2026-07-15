@@ -10,6 +10,7 @@ import { BrandLogo } from "@/components/brand-logo";
 import { User, Mail, Lock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { registerStudent } from "@/lib/auth.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/register")({
   head: () => ({
@@ -39,17 +40,23 @@ function RegisterPage() {
   const blur = (k: string) => () => setTouched((t) => ({ ...t, [k]: true }));
 
   const mutation = useMutation({
-    mutationFn: async () =>
-      registerFn({
+    mutationFn: async () => {
+      await registerFn({
         data: {
           email: form.email.trim().toLowerCase(),
           full_name: form.name,
           password: form.password,
         },
-      }),
+      });
+      const { error } = await supabase.auth.signInWithPassword({
+        email: form.email.trim().toLowerCase(),
+        password: form.password,
+      });
+      if (error) throw new Error(error.message);
+    },
     onSuccess: () => {
-      toast.success("Account created. Please log in.");
-      navigate({ to: "/login" });
+      toast.success("Account created. Waiting for admin approval.");
+      navigate({ to: "/student" });
     },
     onError: (err: Error) => toast.error(err.message),
   });

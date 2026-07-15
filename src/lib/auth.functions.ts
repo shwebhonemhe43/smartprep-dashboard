@@ -21,13 +21,11 @@ export const registerStudent = createServerFn({ method: "POST" })
     if (lookupErr) throw new Error(lookupErr.message);
 
     if (!pre) {
-      throw new Error(
-        "This email is not on the approved student list. Please contact your administrator.",
-      );
+      throw new Error("Your account is not approved by administrator.");
     }
 
     if (pre.program !== "NCC") {
-      throw new Error("Only NCC students can register.");
+      throw new Error("Your account is not approved by administrator.");
     }
 
     if (pre.status === "registered") {

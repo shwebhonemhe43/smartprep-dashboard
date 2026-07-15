@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import {
   Users,
   BookOpen,
@@ -6,8 +8,15 @@ import {
   BarChart3,
   UserPlus,
   Upload,
+  Check,
+  Loader2,
+  UserCheck,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { approveStudent, listPendingApprovals } from "@/lib/approvals.functions";
 
 export const Route = createFileRoute("/admin/")({
   component: AdminDashboard,
@@ -77,6 +86,9 @@ function AdminDashboard() {
           Welcome back — here's what's happening at NCC SmartPrep today.
         </p>
       </div>
+
+      <PendingApprovals />
+
 
       {/* Stat cards */}
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -170,5 +182,87 @@ function AdminDashboard() {
         </Card>
       </div>
     </div>
+  );
+}
+
+function PendingApprovals() {
+  const qc = useQueryClient();
+  const listFn = useServerFn(listPendingApprovals);
+  const approveFn = useServerFn(approveStudent);
+
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["pending-approvals"],
+    queryFn: () => listFn(),
+  });
+
+  const approveMutation = useMutation({
+    mutationFn: async (id: string) => approveFn({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Student approved");
+      qc.invalidateQueries({ queryKey: ["pending-approvals"] });
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  return (
+    <Card className="rounded-2xl border-border/60 shadow-soft">
+      <CardHeader className="pb-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="font-display text-xl font-bold flex items-center gap-2">
+              <UserCheck className="h-5 w-5 text-primary" />
+              Pending Approvals
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Students awaiting your approval to access the platform
+            </p>
+          </div>
+          {data.length > 0 && (
+            <Badge variant="secondary" className="rounded-full">
+              {data.length} pending
+            </Badge>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          </div>
+        ) : data.length === 0 ? (
+          <p className="py-6 text-center text-sm text-muted-foreground">
+            No students waiting for approval.
+          </p>
+        ) : (
+          <ul className="divide-y divide-border/60">
+            {data.map((s) => (
+              <li
+                key={s.id}
+                className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold">{s.full_name}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    <span className="font-mono">{s.student_id}</span> · {s.email}
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => approveMutation.mutate(s.id)}
+                  disabled={approveMutation.isPending}
+                >
+                  {approveMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Check className="h-4 w-4" />
+                  )}
+                  Approve
+                </Button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
   );
 }

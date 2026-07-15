@@ -74,7 +74,6 @@ export const approveStudent = createServerFn({ method: "POST" })
           student_id: profile.student_id,
           full_name: profile.full_name,
           program: profile.program ?? "NCC",
-          })
         })
         .eq("id", existing.id);
       if (upErr) throw new Error(upErr.message);

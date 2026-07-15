@@ -17,6 +17,7 @@ const createSchema = z.object({
   subject_id: z.string().uuid(),
   exam_date: z.string().min(1),
   plan_type: z.enum(["topic", "priority"]),
+  proficiency: z.enum(["strong", "medium", "weak"]),
   available_hours: availableHoursSchema,
   priorities: z.array(z.string().trim().min(1)).optional(),
 });

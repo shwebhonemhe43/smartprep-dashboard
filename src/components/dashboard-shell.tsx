@@ -62,7 +62,7 @@ export function DashboardShell({
       <div className="flex min-h-screen w-full bg-muted/30">
         <Sidebar collapsible="icon">
           <SidebarHeader className="border-b border-sidebar-border px-3 py-4">
-            <BrandLogo size="sm" />
+            <BrandLogo size="sm" variant="on-dark" />
           </SidebarHeader>
           <SidebarContent>
             {resolvedGroups.map((group, idx) => (

@@ -17,24 +17,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { approveStudent, listPendingApprovals, listStudentProfiles } from "@/lib/approvals.functions";
+import { getAdminStats, getAdminActivity, type AdminActivity } from "@/lib/admin-dashboard.functions";
 
 export const Route = createFileRoute("/admin/")({
   component: AdminDashboard,
 });
-
-type Stat = {
-  label: string;
-  value: string;
-  hint: string;
-  icon: React.ComponentType<{ className?: string }>;
-};
-
-const stats: Stat[] = [
-  { label: "Total Students", value: "1,248", hint: "+12.4%", icon: Users },
-  { label: "Learning Resources", value: "342", hint: "+5 this week", icon: BookOpen },
-  { label: "Active This Week", value: "876", hint: "+8.1%", icon: TrendingUp },
-  { label: "Study Plans Generated", value: "2,914", hint: "+18.2%", icon: BarChart3 },
-];
 
 type QuickAction = {
   title: string;
@@ -60,19 +47,22 @@ const quickActions: QuickAction[] = [
   },
 ];
 
-type Activity = {
-  title: string;
-  when: string;
-  tag: "Students" | "Resources";
-};
+function formatRelative(iso: string): string {
+  const then = new Date(iso).getTime();
+  const diff = Date.now() - then;
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "Just now";
+  if (mins < 60) return `${mins} minute${mins === 1 ? "" : "s"} ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs} hour${hrs === 1 ? "" : "s"} ago`;
+  const days = Math.floor(hrs / 24);
+  if (days === 1) return "Yesterday";
+  if (days < 30) return `${days} days ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months} month${months === 1 ? "" : "s"} ago`;
+  return new Date(iso).toLocaleDateString();
+}
 
-const activity: Activity[] = [
-  { title: "Imported 42 student records", when: "2 hours ago", tag: "Students" },
-  { title: "Uploaded 'Data Structures — Week 4.pdf'", when: "5 hours ago", tag: "Resources" },
-  { title: "Approved 8 new registrations", when: "Yesterday", tag: "Students" },
-  { title: "Published new practice quiz set", when: "2 days ago", tag: "Resources" },
-  { title: "Updated Networking syllabus outline", when: "3 days ago", tag: "Resources" },
-];
 
 function AdminDashboard() {
   return (
@@ -92,31 +82,9 @@ function AdminDashboard() {
       <StudentList />
 
 
-
       {/* Stat cards */}
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((s) => (
-          <Card
-            key={s.label}
-            className="rounded-2xl border-border/60 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-elegant"
-          >
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <p className="text-sm font-medium text-muted-foreground">
-                  {s.label}
-                </p>
-                <s.icon className="h-5 w-5 text-primary" />
-              </div>
-              <div className="mt-4 font-display text-4xl font-extrabold tracking-tight">
-                {s.value}
-              </div>
-              <p className="mt-2 text-xs font-medium text-muted-foreground">
-                {s.hint}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <StatCards />
+
 
       {/* Quick Actions + Recent Activity */}
       <div className="grid gap-6 lg:grid-cols-3">
@@ -162,31 +130,124 @@ function AdminDashboard() {
             </p>
           </CardHeader>
           <CardContent>
-            <ul className="divide-y divide-border/60">
-              {activity.map((a, i) => (
-                <li key={i} className="flex items-start justify-between gap-3 py-3.5">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium leading-snug">{a.title}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">{a.when}</p>
-                  </div>
-                  <span
-                    className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-medium ${
-                      a.tag === "Students"
-                        ? "bg-primary/10 text-primary"
-                        : "bg-accent text-accent-foreground"
-                    }`}
-                  >
-                    {a.tag}
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <RecentActivity />
           </CardContent>
+
         </Card>
       </div>
     </div>
   );
 }
+
+function StatCards() {
+  const fn = useServerFn(getAdminStats);
+  const { data, isLoading } = useQuery({
+    queryKey: ["admin-stats"],
+    queryFn: () => fn(),
+  });
+
+  const items = [
+    {
+      label: "Total Students",
+      value: data?.totalStudents ?? 0,
+      hint: data ? `+${data.newStudentsThisWeek} this week` : "—",
+      icon: Users,
+    },
+    {
+      label: "Learning Resources",
+      value: data?.totalResources ?? 0,
+      hint: data ? `+${data.newResourcesThisWeek} this week` : "—",
+      icon: BookOpen,
+    },
+    {
+      label: "Active This Week",
+      value: data?.activeThisWeek ?? 0,
+      hint: "Unique students engaged",
+      icon: TrendingUp,
+    },
+    {
+      label: "Study Plans Generated",
+      value: data?.totalStudyPlans ?? 0,
+      hint: data ? `+${data.newStudyPlansThisWeek} this week` : "—",
+      icon: BarChart3,
+    },
+  ];
+
+  return (
+    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      {items.map((s) => (
+        <Card
+          key={s.label}
+          className="rounded-2xl border-border/60 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-elegant"
+        >
+          <CardContent className="p-6">
+            <div className="flex items-start justify-between">
+              <p className="text-sm font-medium text-muted-foreground">{s.label}</p>
+              <s.icon className="h-5 w-5 text-primary" />
+            </div>
+            <div className="mt-4 font-display text-4xl font-extrabold tracking-tight">
+              {isLoading ? (
+                <Loader2 className="h-7 w-7 animate-spin text-muted-foreground" />
+              ) : (
+                s.value.toLocaleString()
+              )}
+            </div>
+            <p className="mt-2 text-xs font-medium text-muted-foreground">{s.hint}</p>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+function RecentActivity() {
+  const fn = useServerFn(getAdminActivity);
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["admin-activity"],
+    queryFn: () => fn(),
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (data.length === 0) {
+    return (
+      <p className="py-6 text-center text-sm text-muted-foreground">
+        No recent activity yet.
+      </p>
+    );
+  }
+
+  const tagStyle = (tag: AdminActivity["tag"]) => {
+    if (tag === "Students") return "bg-primary/10 text-primary";
+    if (tag === "Study Plans") return "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400";
+    return "bg-accent text-accent-foreground";
+  };
+
+  return (
+    <ul className="divide-y divide-border/60">
+      {data.map((a, i) => (
+        <li key={i} className="flex items-start justify-between gap-3 py-3.5">
+          <div className="min-w-0">
+            <p className="text-sm font-medium leading-snug">{a.title}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{formatRelative(a.when)}</p>
+          </div>
+          <span
+            className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-medium ${tagStyle(a.tag)}`}
+          >
+            {a.tag}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 
 function PendingApprovals() {
   const qc = useQueryClient();

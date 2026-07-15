@@ -269,11 +269,19 @@ function Subjects() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="s-level">Level</Label>
-              <Input
-                id="s-level"
-                value={form.level}
-                onChange={(e) => setForm((f) => ({ ...f, level: e.target.value }))}
-              />
+              <Select
+                value={form.level || undefined}
+                onValueChange={(v) => setForm((f) => ({ ...f, level: v }))}
+              >
+                <SelectTrigger id="s-level">
+                  <SelectValue placeholder="Select level" />
+                </SelectTrigger>
+                <SelectContent>
+                  {LEVEL_OPTIONS.map((l) => (
+                    <SelectItem key={l} value={l}>{l}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="s-desc">Description</Label>

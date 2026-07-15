@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
-import { CalendarDays, Clock, Loader2, Plus, Sparkles, Target, Trash2 } from "lucide-react";
+import { BookOpen, CalendarDays, Clock, Loader2, Plus, Sparkles, Target, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,11 +13,12 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import {
   createStudyPlan,
   getLatestStudyPlan,
+  listEnrolledSubjectsForPlan,
   togglePlanItem,
   type StudyPlanItem,
 } from "@/lib/study-plans.functions";
@@ -56,6 +57,7 @@ function StudyPlanPage() {
 
   const items = data?.items ?? [];
   const plan = data?.plan;
+  const subject = data?.subject ?? null;
   const completed = items.filter((i) => i.completed).length;
   const progressPct = items.length ? Math.round((completed / items.length) * 100) : 0;
 
@@ -69,24 +71,12 @@ function StudyPlanPage() {
     return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
   }, [items]);
 
-  const groupedBySubject = useMemo(() => {
-    const map = new Map<string, { label: string; items: (StudyPlanItem & { subjects?: { subject_code: string; subject_name: string } | null })[] }>();
-    for (const it of items as (StudyPlanItem & { subjects?: { subject_code: string; subject_name: string } | null })[]) {
-      const subj = it.subjects;
-      const key = subj ? `${subj.subject_code}` : it.subject_id ?? "__other__";
-      const label = subj ? `${subj.subject_code} — ${subj.subject_name}` : "Other / Priority";
-      const cur = map.get(key) ?? { label, items: [] };
-      cur.items.push(it);
-      map.set(key, cur);
-    }
-    return Array.from(map.values()).sort((a, b) => a.label.localeCompare(b.label));
-  }, [items]);
-
-  const totalDays = plan
+  const remainingDays = plan
     ? Math.max(
-        1,
+        0,
         Math.ceil(
-          (new Date(plan.exam_date).getTime() - new Date(plan.created_at).getTime()) / (1000 * 60 * 60 * 24),
+          (new Date(plan.exam_date).getTime() - new Date(new Date().toDateString()).getTime()) /
+            (1000 * 60 * 60 * 24),
         ),
       )
     : 0;
@@ -97,7 +87,7 @@ function StudyPlanPage() {
         <div>
           <h1 className="font-display text-3xl font-extrabold tracking-tight">Study Plan</h1>
           <p className="text-sm text-muted-foreground">
-            AI-generated schedule based on your enrolled subjects and available time.
+            AI-generated schedule for one of your enrolled subjects.
           </p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
@@ -132,12 +122,18 @@ function StudyPlanPage() {
       ) : (
         <>
           <Card className="border-border/60 shadow-soft">
-            <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
               <div className="space-y-1">
                 <CardTitle className="flex items-center gap-2 font-display text-xl">
                   <Sparkles className="h-5 w-5 text-primary" />
                   Latest Study Plan
                 </CardTitle>
+                {subject ? (
+                  <p className="text-sm">
+                    <span className="font-medium">Subject:</span>{" "}
+                    {subject.subject_name} ({subject.subject_code})
+                  </p>
+                ) : null}
                 <p className="text-xs text-muted-foreground">
                   Created {new Date(plan.created_at).toLocaleDateString()}
                 </p>
@@ -146,11 +142,12 @@ function StudyPlanPage() {
                 {plan.plan_type} based
               </Badge>
             </CardHeader>
-            <CardContent className="grid gap-4 sm:grid-cols-4">
+            <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+              <Stat icon={BookOpen} label="Subject" value={subject?.subject_code ?? "—"} />
               <Stat icon={CalendarDays} label="Exam date" value={new Date(plan.exam_date).toLocaleDateString()} />
-              <Stat icon={Clock} label="Total days" value={`${totalDays}`} />
+              <Stat icon={Clock} label="Remaining days" value={`${remainingDays}`} />
               <Stat icon={Target} label="Sessions" value={`${items.length}`} />
-              <div className="col-span-full sm:col-span-1">
+              <div>
                 <div className="mb-1 flex items-center justify-between text-xs">
                   <span className="text-muted-foreground">Progress</span>
                   <span className="font-medium">{progressPct}%</span>
@@ -162,78 +159,33 @@ function StudyPlanPage() {
           </Card>
 
           <div className="space-y-4">
-            <Tabs defaultValue="subject" className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="font-display text-xl font-semibold">Schedule</h2>
-                <TabsList>
-                  <TabsTrigger value="subject">By subject</TabsTrigger>
-                  <TabsTrigger value="date">By date</TabsTrigger>
-                </TabsList>
-              </div>
-
-              <TabsContent value="subject" className="space-y-4">
-                {groupedBySubject.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No sessions scheduled.</p>
-                ) : (
-                  groupedBySubject.map((g) => {
-                    const done = g.items.filter((i) => i.completed).length;
-                    const pct = Math.round((done / g.items.length) * 100);
-                    return (
-                      <Card key={g.label} className="border-border/60 shadow-soft">
-                        <CardHeader className="pb-3">
-                          <div className="flex flex-wrap items-center justify-between gap-2">
-                            <CardTitle className="font-display text-base">{g.label}</CardTitle>
-                            <Badge variant="secondary" className="text-xs">
-                              {done}/{g.items.length} done · {pct}%
-                            </Badge>
-                          </div>
-                          <Progress value={pct} className="mt-2 h-1.5" />
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                          {g.items.map((it) => (
-                            <ScheduleItem
-                              key={it.id}
-                              it={it}
-                              showDate
-                              onToggle={(v) => toggleMut.mutate({ item_id: it.id, completed: v })}
-                            />
-                          ))}
-                        </CardContent>
-                      </Card>
-                    );
-                  })
-                )}
-              </TabsContent>
-
-              <TabsContent value="date" className="space-y-4">
-                {groupedByDate.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No sessions scheduled.</p>
-                ) : (
-                  groupedByDate.map(([date, dayItems]) => (
-                    <Card key={date} className="border-border/60 shadow-soft">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="font-display text-base">
-                          {new Date(date).toLocaleDateString(undefined, {
-                            weekday: "long",
-                            month: "short",
-                            day: "numeric",
-                          })}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        {dayItems.map((it) => (
-                          <ScheduleItem
-                            key={it.id}
-                            it={it}
-                            onToggle={(v) => toggleMut.mutate({ item_id: it.id, completed: v })}
-                          />
-                        ))}
-                      </CardContent>
-                    </Card>
-                  ))
-                )}
-              </TabsContent>
-            </Tabs>
+            <h2 className="font-display text-xl font-semibold">Schedule</h2>
+            {groupedByDate.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No sessions scheduled.</p>
+            ) : (
+              groupedByDate.map(([date, dayItems]) => (
+                <Card key={date} className="border-border/60 shadow-soft">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="font-display text-base">
+                      {new Date(date).toLocaleDateString(undefined, {
+                        weekday: "long",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {dayItems.map((it) => (
+                      <ScheduleItem
+                        key={it.id}
+                        it={it}
+                        onToggle={(v) => toggleMut.mutate({ item_id: it.id, completed: v })}
+                      />
+                    ))}
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
         </>
       )}
@@ -245,9 +197,9 @@ function Stat({ icon: Icon, label, value }: { icon: any; label: string; value: s
   return (
     <div className="flex items-center gap-3 rounded-lg border border-border/60 bg-muted/30 p-3">
       <Icon className="h-5 w-5 text-primary" />
-      <div>
+      <div className="min-w-0">
         <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="font-semibold">{value}</p>
+        <p className="truncate font-semibold">{value}</p>
       </div>
     </div>
   );
@@ -256,11 +208,9 @@ function Stat({ icon: Icon, label, value }: { icon: any; label: string; value: s
 function ScheduleItem({
   it,
   onToggle,
-  showDate,
 }: {
-  it: StudyPlanItem & { subjects?: { subject_code: string; subject_name: string } | null };
+  it: StudyPlanItem;
   onToggle: (v: boolean) => void;
-  showDate?: boolean;
 }) {
   return (
     <div
@@ -269,18 +219,9 @@ function ScheduleItem({
         it.completed && "bg-emerald-50/60 border-emerald-200 dark:bg-emerald-950/20",
       )}
     >
-      <Checkbox
-        checked={it.completed}
-        onCheckedChange={(v) => onToggle(Boolean(v))}
-        className="mt-1"
-      />
+      <Checkbox checked={it.completed} onCheckedChange={(v) => onToggle(Boolean(v))} className="mt-1" />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-          {showDate && (
-            <span className="font-medium text-foreground/80">
-              {new Date(it.date).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}
-            </span>
-          )}
           {it.start_time && it.end_time && (
             <span className="font-mono">{it.start_time} – {it.end_time}</span>
           )}
@@ -297,6 +238,13 @@ function ScheduleItem({
 
 function CreatePlanDialog({ onCreated }: { onCreated: () => void }) {
   const createFn = useServerFn(createStudyPlan);
+  const subjectsFn = useServerFn(listEnrolledSubjectsForPlan);
+  const { data: subjects, isLoading: loadingSubjects } = useQuery({
+    queryKey: ["enrolled-subjects-plan"],
+    queryFn: () => subjectsFn(),
+  });
+
+  const [subjectId, setSubjectId] = useState<string>("");
   const [examDate, setExamDate] = useState("");
   const [planType, setPlanType] = useState<"topic" | "priority">("topic");
   const [availability, setAvailability] = useState<Record<string, string[]>>({});
@@ -304,6 +252,7 @@ function CreatePlanDialog({ onCreated }: { onCreated: () => void }) {
 
   const mut = useMutation({
     mutationFn: (payload: {
+      subject_id: string;
       exam_date: string;
       plan_type: "topic" | "priority";
       available_hours: Record<string, string[]>;
@@ -325,15 +274,16 @@ function CreatePlanDialog({ onCreated }: { onCreated: () => void }) {
   };
 
   const handleSubmit = () => {
+    if (!subjectId) return toast.error("Please select a subject");
     if (!examDate) return toast.error("Please pick an exam date");
     const hasAny = Object.values(availability).some((v) => v.length > 0);
     if (!hasAny) return toast.error("Select at least one available time slot");
     if (planType === "priority") {
       const cleaned = priorities.map((p) => p.trim()).filter(Boolean);
       if (cleaned.length === 0) return toast.error("Add at least one priority");
-      mut.mutate({ exam_date: examDate, plan_type: planType, available_hours: availability, priorities: cleaned });
+      mut.mutate({ subject_id: subjectId, exam_date: examDate, plan_type: planType, available_hours: availability, priorities: cleaned });
     } else {
-      mut.mutate({ exam_date: examDate, plan_type: planType, available_hours: availability });
+      mut.mutate({ subject_id: subjectId, exam_date: examDate, plan_type: planType, available_hours: availability });
     }
   };
 
@@ -353,6 +303,69 @@ function CreatePlanDialog({ onCreated }: { onCreated: () => void }) {
             min={new Date(Date.now() + 86400000).toISOString().slice(0, 10)}
             onChange={(e) => setExamDate(e.target.value)}
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Subject</Label>
+          <Select value={subjectId} onValueChange={setSubjectId}>
+            <SelectTrigger>
+              <SelectValue
+                placeholder={loadingSubjects ? "Loading..." : subjects && subjects.length === 0 ? "No enrolled subjects" : "Select a subject"}
+              />
+            </SelectTrigger>
+            <SelectContent>
+              {(subjects ?? []).map((s) => (
+                <SelectItem key={s.id} value={s.id}>
+                  {s.subject_name} ({s.subject_code})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {subjects && subjects.length === 0 && (
+            <p className="text-xs text-muted-foreground">Enroll in a subject first to create a study plan.</p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label>Plan type</Label>
+          <RadioGroup
+            value={planType}
+            onValueChange={(v) => setPlanType(v as "topic" | "priority")}
+            className="grid gap-3 sm:grid-cols-2"
+          >
+            <label
+              className={cn(
+                "cursor-pointer rounded-lg border border-border/60 p-3 transition",
+                planType === "topic" && "border-primary bg-primary/5",
+              )}
+            >
+              <div className="flex items-start gap-2">
+                <RadioGroupItem value="topic" className="mt-1" />
+                <div>
+                  <p className="font-medium">Topic based</p>
+                  <p className="text-xs text-muted-foreground">
+                    Schedule topics from the selected subject.
+                  </p>
+                </div>
+              </div>
+            </label>
+            <label
+              className={cn(
+                "cursor-pointer rounded-lg border border-border/60 p-3 transition",
+                planType === "priority" && "border-primary bg-primary/5",
+              )}
+            >
+              <div className="flex items-start gap-2">
+                <RadioGroupItem value="priority" className="mt-1" />
+                <div>
+                  <p className="font-medium">Priority based</p>
+                  <p className="text-xs text-muted-foreground">
+                    Provide priority goals within the selected subject.
+                  </p>
+                </div>
+              </div>
+            </label>
+          </RadioGroup>
         </div>
 
         <div className="space-y-2">
@@ -387,48 +400,6 @@ function CreatePlanDialog({ onCreated }: { onCreated: () => void }) {
               </tbody>
             </table>
           </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label>Plan type</Label>
-          <RadioGroup
-            value={planType}
-            onValueChange={(v) => setPlanType(v as "topic" | "priority")}
-            className="grid gap-3 sm:grid-cols-2"
-          >
-            <label
-              className={cn(
-                "cursor-pointer rounded-lg border border-border/60 p-3 transition",
-                planType === "topic" && "border-primary bg-primary/5",
-              )}
-            >
-              <div className="flex items-start gap-2">
-                <RadioGroupItem value="topic" className="mt-1" />
-                <div>
-                  <p className="font-medium">Topic based</p>
-                  <p className="text-xs text-muted-foreground">
-                    From your enrolled subjects and remaining topics.
-                  </p>
-                </div>
-              </div>
-            </label>
-            <label
-              className={cn(
-                "cursor-pointer rounded-lg border border-border/60 p-3 transition",
-                planType === "priority" && "border-primary bg-primary/5",
-              )}
-            >
-              <div className="flex items-start gap-2">
-                <RadioGroupItem value="priority" className="mt-1" />
-                <div>
-                  <p className="font-medium">Priority based</p>
-                  <p className="text-xs text-muted-foreground">
-                    Provide priority goals; AI schedules by importance.
-                  </p>
-                </div>
-              </div>
-            </label>
-          </RadioGroup>
         </div>
 
         {planType === "priority" && (

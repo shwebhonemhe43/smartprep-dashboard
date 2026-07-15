@@ -88,7 +88,7 @@ function SubjectDetail() {
                       </Link>
                     </Button>
                     <Button asChild size="sm" variant="outline">
-                      <Link to="/student/quiz">
+                      <Link to="/student/quiz/$topicId" params={{ topicId: t.id }}>
                         <HelpCircle className="mr-2 h-4 w-4" /> Quiz
                       </Link>
                     </Button>

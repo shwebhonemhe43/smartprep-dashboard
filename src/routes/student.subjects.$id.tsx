@@ -91,8 +91,10 @@ function SubjectDetail() {
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <Button size="sm" variant="outline" onClick={() => openTopic(t.file_url)}>
-                      <BookOpen className="mr-2 h-4 w-4" /> Notes
+                    <Button asChild size="sm" variant="outline">
+                      <Link to="/student/notes/$topicId" params={{ topicId: t.id }}>
+                        <BookOpen className="mr-2 h-4 w-4" /> Notes
+                      </Link>
                     </Button>
                     <Button asChild size="sm" variant="outline">
                       <Link to="/student/quiz">

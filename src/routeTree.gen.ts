@@ -28,6 +28,7 @@ import { Route as AdminStudentsRouteImport } from './routes/admin.students'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminQuestionsRouteImport } from './routes/admin.questions'
 import { Route as AdminLecturesRouteImport } from './routes/admin.lectures'
+import { Route as StudentSubjectsIdRouteImport } from './routes/student.subjects.$id'
 
 const StudentRoute = StudentRouteImport.update({
   id: '/student',
@@ -124,6 +125,11 @@ const AdminLecturesRoute = AdminLecturesRouteImport.update({
   path: '/lectures',
   getParentRoute: () => AdminRoute,
 } as any)
+const StudentSubjectsIdRoute = StudentSubjectsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => StudentSubjectsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -142,9 +148,10 @@ export interface FileRoutesByFullPath {
   '/student/quiz': typeof StudentQuizRoute
   '/student/resources': typeof StudentResourcesRoute
   '/student/study-plan': typeof StudentStudyPlanRoute
-  '/student/subjects': typeof StudentSubjectsRoute
+  '/student/subjects': typeof StudentSubjectsRouteWithChildren
   '/admin/': typeof AdminIndexRoute
   '/student/': typeof StudentIndexRoute
+  '/student/subjects/$id': typeof StudentSubjectsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -161,9 +168,10 @@ export interface FileRoutesByTo {
   '/student/quiz': typeof StudentQuizRoute
   '/student/resources': typeof StudentResourcesRoute
   '/student/study-plan': typeof StudentStudyPlanRoute
-  '/student/subjects': typeof StudentSubjectsRoute
+  '/student/subjects': typeof StudentSubjectsRouteWithChildren
   '/admin': typeof AdminIndexRoute
   '/student': typeof StudentIndexRoute
+  '/student/subjects/$id': typeof StudentSubjectsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -183,9 +191,10 @@ export interface FileRoutesById {
   '/student/quiz': typeof StudentQuizRoute
   '/student/resources': typeof StudentResourcesRoute
   '/student/study-plan': typeof StudentStudyPlanRoute
-  '/student/subjects': typeof StudentSubjectsRoute
+  '/student/subjects': typeof StudentSubjectsRouteWithChildren
   '/admin/': typeof AdminIndexRoute
   '/student/': typeof StudentIndexRoute
+  '/student/subjects/$id': typeof StudentSubjectsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -209,6 +218,7 @@ export interface FileRouteTypes {
     | '/student/subjects'
     | '/admin/'
     | '/student/'
+    | '/student/subjects/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -228,6 +238,7 @@ export interface FileRouteTypes {
     | '/student/subjects'
     | '/admin'
     | '/student'
+    | '/student/subjects/$id'
   id:
     | '__root__'
     | '/'
@@ -249,6 +260,7 @@ export interface FileRouteTypes {
     | '/student/subjects'
     | '/admin/'
     | '/student/'
+    | '/student/subjects/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -395,6 +407,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLecturesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/student/subjects/$id': {
+      id: '/student/subjects/$id'
+      path: '/$id'
+      fullPath: '/student/subjects/$id'
+      preLoaderRoute: typeof StudentSubjectsIdRouteImport
+      parentRoute: typeof StudentSubjectsRoute
+    }
   }
 }
 
@@ -418,13 +437,25 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface StudentSubjectsRouteChildren {
+  StudentSubjectsIdRoute: typeof StudentSubjectsIdRoute
+}
+
+const StudentSubjectsRouteChildren: StudentSubjectsRouteChildren = {
+  StudentSubjectsIdRoute: StudentSubjectsIdRoute,
+}
+
+const StudentSubjectsRouteWithChildren = StudentSubjectsRoute._addFileChildren(
+  StudentSubjectsRouteChildren,
+)
+
 interface StudentRouteChildren {
   StudentFlashcardsRoute: typeof StudentFlashcardsRoute
   StudentProfileRoute: typeof StudentProfileRoute
   StudentQuizRoute: typeof StudentQuizRoute
   StudentResourcesRoute: typeof StudentResourcesRoute
   StudentStudyPlanRoute: typeof StudentStudyPlanRoute
-  StudentSubjectsRoute: typeof StudentSubjectsRoute
+  StudentSubjectsRoute: typeof StudentSubjectsRouteWithChildren
   StudentIndexRoute: typeof StudentIndexRoute
 }
 
@@ -434,7 +465,7 @@ const StudentRouteChildren: StudentRouteChildren = {
   StudentQuizRoute: StudentQuizRoute,
   StudentResourcesRoute: StudentResourcesRoute,
   StudentStudyPlanRoute: StudentStudyPlanRoute,
-  StudentSubjectsRoute: StudentSubjectsRoute,
+  StudentSubjectsRoute: StudentSubjectsRouteWithChildren,
   StudentIndexRoute: StudentIndexRoute,
 }
 

@@ -197,16 +197,23 @@ function PlanCard({
       }}
       className="cursor-pointer border-border/60 shadow-soft transition hover:border-primary/40 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
     >
-      <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-1">
-          <CardTitle className="flex items-center gap-2 font-display text-lg">
-            <Sparkles className="h-5 w-5 text-primary" />
-            {subject ? `${subject.subject_name} (${subject.subject_code})` : "Study Plan"}
-          </CardTitle>
-          <p className="text-xs text-muted-foreground">
-            Created {new Date(plan.created_at).toLocaleDateString()}
-          </p>
+      <CardContent className="flex flex-col gap-5 p-5">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 space-y-1">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Subject</p>
+            <CardTitle className="flex items-center gap-2 font-display text-xl">
+              <Sparkles className="h-5 w-5 shrink-0 text-primary" />
+              <span className="truncate">{subject?.subject_name ?? "Study Plan"}</span>
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Created {new Date(plan.created_at).toLocaleDateString()}
+            </p>
+          </div>
+          <ChevronRight className="mt-1 hidden h-5 w-5 shrink-0 text-muted-foreground sm:block" />
         </div>
+
+        {/* Badges */}
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant={plan.plan_type === "topic" ? "secondary" : "default"} className="w-fit capitalize">
             {plan.plan_type} based
@@ -216,49 +223,51 @@ function PlanCard({
               {plan.subject_proficiency} proficiency
             </Badge>
           )}
-          <div className="flex items-center gap-1" onClick={stop} onKeyDown={stop}>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={(e) => {
-                e.stopPropagation();
-                setEditOpen(true);
-              }}
-              aria-label="Edit study plan"
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-destructive hover:text-destructive"
-              onClick={(e) => {
-                e.stopPropagation();
-                setDeleteOpen(true);
-              }}
-              aria-label="Delete study plan"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-          <ChevronRight className="hidden h-5 w-5 text-muted-foreground sm:block" />
         </div>
-      </CardHeader>
-      <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <Stat icon={BookOpen} label="Subject" value={subject?.subject_code ?? "—"} />
-        <Stat icon={CalendarDays} label="Exam date" value={new Date(plan.exam_date).toLocaleDateString()} />
-        <Stat icon={Clock} label="Remaining days" value={`${daysUntil(plan.exam_date)}`} />
-        <Stat icon={Target} label="Sessions" value={`${total_items}`} />
+
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-3">
+          <Stat icon={CalendarDays} label="Exam date" value={new Date(plan.exam_date).toLocaleDateString()} />
+          <Stat icon={Clock} label="Remaining days" value={`${daysUntil(plan.exam_date)}`} />
+          <Stat icon={Target} label="Sessions" value={`${total_items}`} />
+        </div>
+
+        {/* Progress */}
         <div>
-          <div className="mb-1 flex items-center justify-between text-xs">
+          <div className="mb-1.5 flex items-center justify-between text-xs">
             <span className="text-muted-foreground">Progress</span>
             <span className="font-medium">{pct}%</span>
           </div>
           <Progress value={pct} />
-          <p className="mt-1 text-xs text-muted-foreground">
-            {completed_items} of {total_items} done
+          <p className="mt-1.5 text-xs text-muted-foreground">
+            {completed_items} of {total_items} sessions completed
           </p>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center justify-end gap-2 pt-1" onClick={stop} onKeyDown={stop}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            onClick={(e) => {
+              e.stopPropagation();
+              setEditOpen(true);
+            }}
+          >
+            <Pencil className="h-4 w-4" /> Edit
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 text-destructive hover:text-destructive"
+            onClick={(e) => {
+              e.stopPropagation();
+              setDeleteOpen(true);
+            }}
+          >
+            <Trash2 className="h-4 w-4" /> Delete
+          </Button>
         </div>
       </CardContent>
 
@@ -298,7 +307,6 @@ function PlanCard({
         </AlertDialogContent>
       </AlertDialog>
     </Card>
-
   );
 }
 

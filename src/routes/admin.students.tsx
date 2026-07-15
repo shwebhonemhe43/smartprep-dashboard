@@ -308,3 +308,83 @@ function Students() {
     </div>
   );
 }
+
+function StudentProfilesCard() {
+  const profilesFn = useServerFn(listStudentProfiles);
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["student-profiles"],
+    queryFn: () => profilesFn(),
+  });
+
+  return (
+    <Card className="rounded-2xl border-border/60 shadow-soft">
+      <CardContent className="space-y-4 p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="font-display text-2xl font-bold tracking-tight">
+              Student Profiles
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Accounts created after registration
+            </p>
+          </div>
+          {data.length > 0 && (
+            <Badge variant="secondary" className="rounded-full">
+              {data.length} total
+            </Badge>
+          )}
+        </div>
+
+        <div className="overflow-hidden rounded-xl border border-border/60">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/40 hover:bg-muted/40">
+                <TableHead className="py-3 font-semibold text-foreground">Student ID</TableHead>
+                <TableHead className="py-3 font-semibold text-foreground">Full Name</TableHead>
+                <TableHead className="py-3 font-semibold text-foreground">Email</TableHead>
+                <TableHead className="py-3 font-semibold text-foreground">Program</TableHead>
+                <TableHead className="py-3 font-semibold text-foreground">Approval</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow className="hover:bg-transparent">
+                  <TableCell colSpan={5} className="py-12 text-center text-muted-foreground">
+                    <Loader2 className="mx-auto h-5 w-5 animate-spin" />
+                  </TableCell>
+                </TableRow>
+              ) : data.length === 0 ? (
+                <TableRow className="hover:bg-transparent">
+                  <TableCell colSpan={5} className="py-12 text-center text-muted-foreground">
+                    No student profiles yet.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                data.map((s) => (
+                  <TableRow key={s.id}>
+                    <TableCell className="font-mono text-sm">{s.student_id}</TableCell>
+                    <TableCell className="font-medium">{s.full_name}</TableCell>
+                    <TableCell className="text-muted-foreground">{s.email}</TableCell>
+                    <TableCell>{s.program ?? "—"}</TableCell>
+                    <TableCell>
+                      {s.approval_status === "approved" ? (
+                        <Badge className="bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/20 dark:text-emerald-400">
+                          Approved
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-amber-500/15 text-amber-700 hover:bg-amber-500/20 dark:text-amber-400">
+                          Pending
+                        </Badge>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+

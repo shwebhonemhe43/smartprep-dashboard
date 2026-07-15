@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { approveStudent, listPendingApprovals } from "@/lib/approvals.functions";
+import { approveStudent, listPendingApprovals, listStudentProfiles } from "@/lib/approvals.functions";
 
 export const Route = createFileRoute("/admin/")({
   component: AdminDashboard,
@@ -88,6 +88,9 @@ function AdminDashboard() {
       </div>
 
       <PendingApprovals />
+
+      <StudentList />
+
 
 
       {/* Stat cards */}
@@ -266,3 +269,81 @@ function PendingApprovals() {
     </Card>
   );
 }
+
+function StudentList() {
+  const listFn = useServerFn(listStudentProfiles);
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["student-profiles"],
+    queryFn: () => listFn(),
+  });
+
+  return (
+    <Card className="rounded-2xl border-border/60 shadow-soft">
+      <CardHeader className="pb-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="font-display text-xl font-bold flex items-center gap-2">
+              <Users className="h-5 w-5 text-primary" />
+              Student List
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              All registered student profiles
+            </p>
+          </div>
+          {data.length > 0 && (
+            <Badge variant="secondary" className="rounded-full">
+              {data.length} total
+            </Badge>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          </div>
+        ) : data.length === 0 ? (
+          <p className="py-6 text-center text-sm text-muted-foreground">
+            No student profiles yet.
+          </p>
+        ) : (
+          <div className="overflow-hidden rounded-xl border border-border/60">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/40">
+                <tr className="text-left">
+                  <th className="py-2.5 px-3 font-semibold">Student ID</th>
+                  <th className="py-2.5 px-3 font-semibold">Full Name</th>
+                  <th className="py-2.5 px-3 font-semibold">Email</th>
+                  <th className="py-2.5 px-3 font-semibold">Program</th>
+                  <th className="py-2.5 px-3 font-semibold">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.map((s) => (
+                  <tr key={s.id} className="border-t border-border/60">
+                    <td className="py-2.5 px-3 font-mono">{s.student_id}</td>
+                    <td className="py-2.5 px-3 font-medium">{s.full_name}</td>
+                    <td className="py-2.5 px-3 text-muted-foreground">{s.email}</td>
+                    <td className="py-2.5 px-3">{s.program ?? "—"}</td>
+                    <td className="py-2.5 px-3">
+                      {s.approval_status === "approved" ? (
+                        <Badge className="bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/20 dark:text-emerald-400">
+                          Approved
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-amber-500/15 text-amber-700 hover:bg-amber-500/20 dark:text-amber-400">
+                          Pending
+                        </Badge>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+

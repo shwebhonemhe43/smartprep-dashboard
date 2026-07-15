@@ -71,7 +71,10 @@ function StudentSubjects() {
         </Card>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {subjects.map((s: any) => (
+          {subjects.map((s: any) => {
+            const isEnrolled = enrolledIds.has(s.id);
+            const isEnrolling = enrollMutation.isPending && enrollMutation.variables === s.id;
+            return (
             <Card
               key={s.id}
               className="flex h-full flex-col rounded-2xl border-border/60 shadow-soft transition hover:shadow-elegant hover:border-primary/40"
@@ -102,12 +105,27 @@ function StudentSubjects() {
                   </div>
                   <Progress value={s.progress} className="h-2" />
                 </div>
-                <Button asChild size="sm" className="w-full">
-                  <Link to="/student/subjects/$id" params={{ id: s.id }}>
-                    {s.progress > 0 ? "Continue" : "Enroll"}
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
+                {isEnrolled ? (
+                  <Button asChild size="sm" className="w-full">
+                    <Link to="/student/subjects/$id" params={{ id: s.id }}>
+                      {s.progress > 0 ? "Continue" : "Enrolled"}
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    className="w-full"
+                    disabled={isEnrolling}
+                    onClick={() => enrollMutation.mutate(s.id)}
+                  >
+                    {isEnrolling ? (
+                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Enrolling...</>
+                    ) : (
+                      <><CheckCircle2 className="mr-2 h-4 w-4" /> Enroll</>
+                    )}
+                  </Button>
+                )}
               </CardContent>
             </Card>
           ))}

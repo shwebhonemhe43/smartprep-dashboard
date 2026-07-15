@@ -281,17 +281,6 @@ function PlanCard({
           <Button
             variant="outline"
             size="sm"
-            className="gap-2"
-            onClick={(e) => {
-              e.stopPropagation();
-              setEditOpen(true);
-            }}
-          >
-            <Pencil className="h-4 w-4" /> Edit
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
             className="gap-2 text-destructive hover:text-destructive"
             onClick={(e) => {
               e.stopPropagation();
@@ -302,17 +291,6 @@ function PlanCard({
           </Button>
         </div>
       </CardContent>
-
-      <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <EditPlanDialog
-          plan={plan}
-          subject={subject}
-          onSaved={() => {
-            setEditOpen(false);
-            onChanged();
-          }}
-        />
-      </Dialog>
 
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent onClick={stop}>

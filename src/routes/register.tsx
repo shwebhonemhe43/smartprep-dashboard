@@ -122,6 +122,50 @@ function RegisterPage() {
                 </div>
                 {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
               </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="program">Program</Label>
+                  <Select
+                    value={form.program}
+                    onValueChange={(v: Program) =>
+                      setForm((f) => ({ ...f, program: v, level: "" }))
+                    }
+                  >
+                    <SelectTrigger id="program">
+                      <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                      <SelectValue placeholder="Program" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="NCC">NCC</SelectItem>
+                      <SelectItem value="HNC">HNC</SelectItem>
+                      <SelectItem value="HND">HND</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="level">Level</Label>
+                  <Select
+                    value={form.level}
+                    onValueChange={(v) => {
+                      setForm((f) => ({ ...f, level: v }));
+                      setTouched((t) => ({ ...t, level: true }));
+                    }}
+                  >
+                    <SelectTrigger id="level">
+                      <BookOpen className="h-4 w-4 text-muted-foreground" />
+                      <SelectValue placeholder="Select level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PROGRAM_LEVELS[form.program].map((lvl) => (
+                        <SelectItem key={lvl} value={lvl}>
+                          {lvl}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.level && <p className="text-xs text-destructive">{errors.level}</p>}
+                </div>
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <div className="relative">

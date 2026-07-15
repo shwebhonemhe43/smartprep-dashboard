@@ -1,8 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { BookMarked, CheckCircle2, ListChecks, CalendarClock } from "lucide-react";
 import { StatCard } from "@/components/dashboard-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { listMyEnrollments } from "@/lib/enrollments.functions";
 
 export const Route = createFileRoute("/student/")({
   component: StudentDashboard,

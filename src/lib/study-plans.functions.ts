@@ -242,7 +242,7 @@ Rules:
       exam_date: data.exam_date,
       today: today.toISOString().slice(0, 10),
       plan_type: data.plan_type,
-      proficiency: data.proficiency,
+      subject_proficiency: data.proficiency,
       available_slots: availableSlots,
       topics: data.plan_type === "topic" ? topicSummary : [],
       priorities: data.plan_type === "priority" ? data.priorities ?? [] : [],

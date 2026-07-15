@@ -139,6 +139,7 @@ function Students() {
                   <TableHead className="py-3 font-semibold text-foreground">Program</TableHead>
                   <TableHead className="py-3 font-semibold text-foreground">Status</TableHead>
                   <TableHead className="py-3 font-semibold text-foreground">Register Status</TableHead>
+                  <TableHead className="py-3 font-semibold text-foreground">Approval</TableHead>
                   <TableHead className="py-3 text-right font-semibold text-foreground">
                     Actions
                   </TableHead>
@@ -147,13 +148,13 @@ function Students() {
               <TableBody>
                 {isLoading ? (
                   <TableRow className="hover:bg-transparent">
-                    <TableCell colSpan={7} className="py-16 text-center text-muted-foreground">
+                    <TableCell colSpan={8} className="py-16 text-center text-muted-foreground">
                       <Loader2 className="mx-auto h-5 w-5 animate-spin" />
                     </TableCell>
                   </TableRow>
                 ) : filtered.length === 0 ? (
                   <TableRow className="hover:bg-transparent">
-                    <TableCell colSpan={7} className="py-16 text-center text-muted-foreground">
+                    <TableCell colSpan={8} className="py-16 text-center text-muted-foreground">
                       No students found.
                     </TableCell>
                   </TableRow>
@@ -182,6 +183,19 @@ function Students() {
                           </Badge>
                         ) : (
                           <Badge variant="secondary">Pre-Register</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {r.approval_status === "approved" ? (
+                          <Badge className="bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/20 dark:text-emerald-400">
+                            Approved
+                          </Badge>
+                        ) : r.approval_status === "pending" ? (
+                          <Badge className="bg-amber-500/15 text-amber-700 hover:bg-amber-500/20 dark:text-amber-400">
+                            Pending
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary">—</Badge>
                         )}
                       </TableCell>
                       <TableCell className="text-right">

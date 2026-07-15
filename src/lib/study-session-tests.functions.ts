@@ -177,7 +177,7 @@ Return ONLY valid JSON in this exact shape:
 }`;
 
     const raw = await callAI(apiKey, [
-      { role: "system", content: "You produce well-formed JSON assessments. Output only JSON, no prose." },
+      { role: "system", content: "You produce well-formed JSON assessments. Output ONLY a single raw JSON object. Do NOT wrap in markdown code fences. Do NOT include any text before or after the JSON." },
       { role: "user", content: prompt },
     ], true);
     const parsed = extractJson(raw);

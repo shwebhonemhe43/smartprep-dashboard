@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getOrGenerateTopicQuiz } from "@/lib/topic-quiz.functions";
 import { markTopicProgress } from "@/lib/topic-progress.functions";
+import { recordQuizAttempt } from "@/lib/quiz-attempts.functions";
 import { saveQuizSet, checkQuizSaved } from "@/lib/saved-quizzes.functions";
 import { cn } from "@/lib/utils";
 

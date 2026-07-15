@@ -78,8 +78,20 @@ function QuizPage() {
   useEffect(() => {
     if (submitted) {
       markFn({ data: { topic_id: topicId, kind: "quiz" } }).catch(() => {});
+      recordFn({
+        data: {
+          topic_id: topicId,
+          subject_id: (data as any)?.subject_id ?? null,
+          correct_count: score,
+          total_count: total,
+        },
+      })
+        .then(() => {
+          qc.invalidateQueries({ queryKey: ["my-profile"] });
+        })
+        .catch(() => {});
     }
-  }, [submitted, topicId, markFn]);
+  }, [submitted, topicId, markFn, recordFn, score, total, data, qc]);
 
   const reset = () => {
     setAnswers({});

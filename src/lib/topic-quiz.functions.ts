@@ -44,6 +44,7 @@ export const getOrGenerateTopicQuiz = createServerFn({ method: "POST" })
         updated_at: existing.updated_at,
         topic_name: topicName,
         subject: topic.subjects,
+        subject_id: topic.subject_id,
       };
     }
 
@@ -150,6 +151,7 @@ Generate 10 MCQ questions as JSON: {"quiz":[{"question":"...","options":["A","B"
             updated_at: race.updated_at,
             topic_name: topicName,
             subject: topic.subjects,
+            subject_id: topic.subject_id,
           };
         }
       }
@@ -163,5 +165,6 @@ Generate 10 MCQ questions as JSON: {"quiz":[{"question":"...","options":["A","B"
       updated_at: saved.updated_at,
       topic_name: topicName,
       subject: topic.subjects,
+      subject_id: topic.subject_id,
     };
   });

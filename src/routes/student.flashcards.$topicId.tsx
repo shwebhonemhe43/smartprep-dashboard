@@ -1,13 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { ArrowLeft, ChevronLeft, ChevronRight, Loader2, Sparkles, RotateCw } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Loader2, Sparkles, RotateCw, Bookmark, BookmarkCheck } from "lucide-react";
+import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getOrGenerateTopicFlashcards } from "@/lib/topic-flashcards.functions";
 import { markTopicProgress } from "@/lib/topic-progress.functions";
+import { saveFlashcardSet, checkFlashcardSaved } from "@/lib/saved-flashcards.functions";
 
 export const Route = createFileRoute("/student/flashcards/$topicId")({
   head: () => ({ meta: [{ title: "Flashcards — NCC SmartPrep" }] }),
@@ -18,12 +20,43 @@ function FlashcardsPage() {
   const { topicId } = Route.useParams();
   const fn = useServerFn(getOrGenerateTopicFlashcards);
   const markFn = useServerFn(markTopicProgress);
+  const saveFn = useServerFn(saveFlashcardSet);
+  const checkFn = useServerFn(checkFlashcardSaved);
+  const qc = useQueryClient();
   const { data, isLoading, error } = useQuery({
     queryKey: ["topic-flashcards", topicId],
     queryFn: () => fn({ data: { topic_id: topicId } }),
     staleTime: Infinity,
     retry: false,
   });
+
+  const savedQ = useQuery({
+    queryKey: ["flashcards-saved", topicId],
+    queryFn: () => checkFn({ data: { topic_id: topicId } }),
+    staleTime: 60_000,
+  });
+
+  const saveMut = useMutation({
+    mutationFn: async () => {
+      if (!data) throw new Error("Nothing to save");
+      return saveFn({
+        data: {
+          topic_id: topicId,
+          subject_id: data.subject_id ?? null,
+          subject_name: (data.subject as any)?.subject_name ?? "Subject",
+          topic_name: data.topic_name,
+          flashcards: data.flashcards,
+        },
+      });
+    },
+    onSuccess: () => {
+      toast.success("Flashcards saved successfully");
+      qc.invalidateQueries({ queryKey: ["flashcards-saved", topicId] });
+      qc.invalidateQueries({ queryKey: ["saved-flashcards-list"] });
+    },
+    onError: (e) => toast.error((e as Error).message),
+  });
+
 
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
@@ -78,7 +111,23 @@ function FlashcardsPage() {
                 </span>
               )}
             </div>
-            <h1 className="font-display text-3xl font-extrabold tracking-tight">{data.topic_name}</h1>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <h1 className="font-display text-3xl font-extrabold tracking-tight">{data.topic_name}</h1>
+              <Button
+                onClick={() => saveMut.mutate()}
+                disabled={saveMut.isPending || savedQ.data?.saved}
+                variant={savedQ.data?.saved ? "secondary" : "default"}
+                size="sm"
+              >
+                {savedQ.data?.saved ? (
+                  <><BookmarkCheck className="mr-2 h-4 w-4" /> Saved ✓</>
+                ) : saveMut.isPending ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving…</>
+                ) : (
+                  <><Bookmark className="mr-2 h-4 w-4" /> Save Flashcards</>
+                )}
+              </Button>
+            </div>
           </div>
 
           <div className="flex items-center justify-between text-sm text-muted-foreground">

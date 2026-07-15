@@ -34,6 +34,8 @@ import { Route as StudentSubjectsIdRouteImport } from './routes/student.subjects
 import { Route as StudentQuizTopicIdRouteImport } from './routes/student.quiz.$topicId'
 import { Route as StudentNotesTopicIdRouteImport } from './routes/student.notes.$topicId'
 import { Route as StudentFlashcardsTopicIdRouteImport } from './routes/student.flashcards.$topicId'
+import { Route as StudentQuizSavedIdRouteImport } from './routes/student.quiz.saved.$id'
+import { Route as StudentFlashcardsSavedIdRouteImport } from './routes/student.flashcards.saved.$id'
 
 const StudentRoute = StudentRouteImport.update({
   id: '/student',
@@ -161,6 +163,17 @@ const StudentFlashcardsTopicIdRoute =
     path: '/$topicId',
     getParentRoute: () => StudentFlashcardsRoute,
   } as any)
+const StudentQuizSavedIdRoute = StudentQuizSavedIdRouteImport.update({
+  id: '/saved/$id',
+  path: '/saved/$id',
+  getParentRoute: () => StudentQuizRoute,
+} as any)
+const StudentFlashcardsSavedIdRoute =
+  StudentFlashcardsSavedIdRouteImport.update({
+    id: '/saved/$id',
+    path: '/saved/$id',
+    getParentRoute: () => StudentFlashcardsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -188,6 +201,8 @@ export interface FileRoutesByFullPath {
   '/student/flashcards/': typeof StudentFlashcardsIndexRoute
   '/student/quiz/': typeof StudentQuizIndexRoute
   '/student/subjects/': typeof StudentSubjectsIndexRoute
+  '/student/flashcards/saved/$id': typeof StudentFlashcardsSavedIdRoute
+  '/student/quiz/saved/$id': typeof StudentQuizSavedIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -211,6 +226,8 @@ export interface FileRoutesByTo {
   '/student/flashcards': typeof StudentFlashcardsIndexRoute
   '/student/quiz': typeof StudentQuizIndexRoute
   '/student/subjects': typeof StudentSubjectsIndexRoute
+  '/student/flashcards/saved/$id': typeof StudentFlashcardsSavedIdRoute
+  '/student/quiz/saved/$id': typeof StudentQuizSavedIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -239,6 +256,8 @@ export interface FileRoutesById {
   '/student/flashcards/': typeof StudentFlashcardsIndexRoute
   '/student/quiz/': typeof StudentQuizIndexRoute
   '/student/subjects/': typeof StudentSubjectsIndexRoute
+  '/student/flashcards/saved/$id': typeof StudentFlashcardsSavedIdRoute
+  '/student/quiz/saved/$id': typeof StudentQuizSavedIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -268,6 +287,8 @@ export interface FileRouteTypes {
     | '/student/flashcards/'
     | '/student/quiz/'
     | '/student/subjects/'
+    | '/student/flashcards/saved/$id'
+    | '/student/quiz/saved/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -291,6 +312,8 @@ export interface FileRouteTypes {
     | '/student/flashcards'
     | '/student/quiz'
     | '/student/subjects'
+    | '/student/flashcards/saved/$id'
+    | '/student/quiz/saved/$id'
   id:
     | '__root__'
     | '/'
@@ -318,6 +341,8 @@ export interface FileRouteTypes {
     | '/student/flashcards/'
     | '/student/quiz/'
     | '/student/subjects/'
+    | '/student/flashcards/saved/$id'
+    | '/student/quiz/saved/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -506,6 +531,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudentFlashcardsTopicIdRouteImport
       parentRoute: typeof StudentFlashcardsRoute
     }
+    '/student/quiz/saved/$id': {
+      id: '/student/quiz/saved/$id'
+      path: '/saved/$id'
+      fullPath: '/student/quiz/saved/$id'
+      preLoaderRoute: typeof StudentQuizSavedIdRouteImport
+      parentRoute: typeof StudentQuizRoute
+    }
+    '/student/flashcards/saved/$id': {
+      id: '/student/flashcards/saved/$id'
+      path: '/saved/$id'
+      fullPath: '/student/flashcards/saved/$id'
+      preLoaderRoute: typeof StudentFlashcardsSavedIdRouteImport
+      parentRoute: typeof StudentFlashcardsRoute
+    }
   }
 }
 
@@ -532,11 +571,13 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 interface StudentFlashcardsRouteChildren {
   StudentFlashcardsTopicIdRoute: typeof StudentFlashcardsTopicIdRoute
   StudentFlashcardsIndexRoute: typeof StudentFlashcardsIndexRoute
+  StudentFlashcardsSavedIdRoute: typeof StudentFlashcardsSavedIdRoute
 }
 
 const StudentFlashcardsRouteChildren: StudentFlashcardsRouteChildren = {
   StudentFlashcardsTopicIdRoute: StudentFlashcardsTopicIdRoute,
   StudentFlashcardsIndexRoute: StudentFlashcardsIndexRoute,
+  StudentFlashcardsSavedIdRoute: StudentFlashcardsSavedIdRoute,
 }
 
 const StudentFlashcardsRouteWithChildren =
@@ -545,11 +586,13 @@ const StudentFlashcardsRouteWithChildren =
 interface StudentQuizRouteChildren {
   StudentQuizTopicIdRoute: typeof StudentQuizTopicIdRoute
   StudentQuizIndexRoute: typeof StudentQuizIndexRoute
+  StudentQuizSavedIdRoute: typeof StudentQuizSavedIdRoute
 }
 
 const StudentQuizRouteChildren: StudentQuizRouteChildren = {
   StudentQuizTopicIdRoute: StudentQuizTopicIdRoute,
   StudentQuizIndexRoute: StudentQuizIndexRoute,
+  StudentQuizSavedIdRoute: StudentQuizSavedIdRoute,
 }
 
 const StudentQuizRouteWithChildren = StudentQuizRoute._addFileChildren(

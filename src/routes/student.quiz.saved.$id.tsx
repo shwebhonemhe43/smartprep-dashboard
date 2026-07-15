@@ -1,69 +1,33 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ChevronLeft, ChevronRight, Loader2, Sparkles, Check, X, RotateCw, Bookmark, BookmarkCheck } from "lucide-react";
-import { toast } from "sonner";
+import { useMemo, useState } from "react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Loader2, Sparkles, Check, X, RotateCw } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { getOrGenerateTopicQuiz } from "@/lib/topic-quiz.functions";
-import { markTopicProgress } from "@/lib/topic-progress.functions";
-import { saveQuizSet, checkQuizSaved } from "@/lib/saved-quizzes.functions";
+import { getSavedQuizSet } from "@/lib/saved-quizzes.functions";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/student/quiz/$topicId")({
-  head: () => ({ meta: [{ title: "Quiz — NCC SmartPrep" }] }),
-  component: QuizPage,
+export const Route = createFileRoute("/student/quiz/saved/$id")({
+  head: () => ({ meta: [{ title: "Saved Quiz — NCC SmartPrep" }] }),
+  component: SavedQuizDetail,
 });
 
-function QuizPage() {
-  const { topicId } = Route.useParams();
-  const fn = useServerFn(getOrGenerateTopicQuiz);
-  const markFn = useServerFn(markTopicProgress);
-  const saveFn = useServerFn(saveQuizSet);
-  const checkFn = useServerFn(checkQuizSaved);
-  const qc = useQueryClient();
+function SavedQuizDetail() {
+  const { id } = Route.useParams();
+  const fn = useServerFn(getSavedQuizSet);
   const { data, isLoading, error } = useQuery({
-    queryKey: ["topic-quiz", topicId],
-    queryFn: () => fn({ data: { topic_id: topicId } }),
+    queryKey: ["saved-quiz", id],
+    queryFn: () => fn({ data: { id } }),
     staleTime: Infinity,
-    retry: false,
   });
-
-  const savedQ = useQuery({
-    queryKey: ["quiz-saved", topicId],
-    queryFn: () => checkFn({ data: { topic_id: topicId } }),
-    staleTime: 60_000,
-  });
-
-  const saveMut = useMutation({
-    mutationFn: async () => {
-      if (!data) throw new Error("Nothing to save");
-      return saveFn({
-        data: {
-          topic_id: topicId,
-          subject_id: data.subject_id ?? null,
-          subject_name: (data.subject as any)?.subject_name ?? "Subject",
-          topic_name: data.topic_name,
-          questions: data.quiz,
-        },
-      });
-    },
-    onSuccess: () => {
-      toast.success("Quiz saved successfully");
-      qc.invalidateQueries({ queryKey: ["quiz-saved", topicId] });
-      qc.invalidateQueries({ queryKey: ["saved-quizzes-list"] });
-    },
-    onError: (e) => toast.error((e as Error).message),
-  });
-
 
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [submitted, setSubmitted] = useState(false);
 
-  const quiz = data?.quiz ?? [];
+  const quiz = data?.questions ?? [];
   const total = quiz.length;
   const current = quiz[index];
   const chosen = answers[index];
@@ -72,12 +36,6 @@ function QuizPage() {
     () => quiz.reduce((n, q, i) => (answers[i] === q.answer_index ? n + 1 : n), 0),
     [quiz, answers],
   );
-
-  useEffect(() => {
-    if (submitted) {
-      markFn({ data: { topic_id: topicId, kind: "quiz" } }).catch(() => {});
-    }
-  }, [submitted, topicId, markFn]);
 
   const reset = () => {
     setAnswers({});
@@ -88,55 +46,28 @@ function QuizPage() {
   return (
     <div className="space-y-6">
       <Button asChild variant="ghost" size="sm" className="-ml-2 w-fit">
-        <Link to="/student/subjects">
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Subjects
+        <Link to="/student/quiz">
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Saved Quizzes
         </Link>
       </Button>
 
       {isLoading ? (
         <Card className="border-border/60 shadow-soft">
-          <CardContent className="flex flex-col items-center gap-3 p-12 text-center text-muted-foreground">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="font-medium">Generating your quiz…</p>
-            <p className="text-xs">We save it so you always see the same set.</p>
+          <CardContent className="flex items-center justify-center gap-2 p-10 text-muted-foreground">
+            <Loader2 className="h-5 w-5 animate-spin" /> Loading…
           </CardContent>
         </Card>
       ) : error ? (
-        <Card className="border-destructive/40 shadow-soft">
-          <CardContent className="p-8 text-center text-sm text-destructive">
-            {(error as Error).message}
-          </CardContent>
+        <Card className="border-destructive/40">
+          <CardContent className="p-6 text-sm text-destructive">{(error as Error).message}</CardContent>
         </Card>
       ) : data && current ? (
         <>
           <div className="space-y-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="secondary" className="gap-1">
-                <Sparkles className="h-3 w-3" /> AI Quiz
-              </Badge>
-              {data.subject && (
-                <span className="font-mono text-xs text-muted-foreground">
-                  {(data.subject as any).subject_code}
-                </span>
-              )}
-            </div>
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <h1 className="font-display text-3xl font-extrabold tracking-tight">{data.topic_name}</h1>
-              <Button
-                onClick={() => saveMut.mutate()}
-                disabled={saveMut.isPending || savedQ.data?.saved}
-                variant={savedQ.data?.saved ? "secondary" : "default"}
-                size="sm"
-              >
-                {savedQ.data?.saved ? (
-                  <><BookmarkCheck className="mr-2 h-4 w-4" /> Saved ✓</>
-                ) : saveMut.isPending ? (
-                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving…</>
-                ) : (
-                  <><Bookmark className="mr-2 h-4 w-4" /> Save Quiz</>
-                )}
-              </Button>
-            </div>
+            <Badge variant="secondary" className="gap-1">
+              <Sparkles className="h-3 w-3" /> {data.subject_name}
+            </Badge>
+            <h1 className="font-display text-3xl font-extrabold tracking-tight">{data.topic_name}</h1>
           </div>
 
           {submitted ? (

@@ -129,6 +129,75 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_flashcards: {
+        Row: {
+          created_at: string
+          flashcards: Json
+          id: string
+          student_id: string
+          subject_id: string | null
+          subject_name: string
+          topic_id: string | null
+          topic_name: string
+        }
+        Insert: {
+          created_at?: string
+          flashcards: Json
+          id?: string
+          student_id: string
+          subject_id?: string | null
+          subject_name: string
+          topic_id?: string | null
+          topic_name: string
+        }
+        Update: {
+          created_at?: string
+          flashcards?: Json
+          id?: string
+          student_id?: string
+          subject_id?: string | null
+          subject_name?: string
+          topic_id?: string | null
+          topic_name?: string
+        }
+        Relationships: []
+      }
+      saved_quizzes: {
+        Row: {
+          created_at: string
+          id: string
+          question_count: number
+          questions: Json
+          student_id: string
+          subject_id: string | null
+          subject_name: string
+          topic_id: string | null
+          topic_name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          question_count?: number
+          questions: Json
+          student_id: string
+          subject_id?: string | null
+          subject_name: string
+          topic_id?: string | null
+          topic_name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          question_count?: number
+          questions?: Json
+          student_id?: string
+          subject_id?: string | null
+          subject_name?: string
+          topic_id?: string | null
+          topic_name?: string
+        }
+        Relationships: []
+      }
       student_profiles: {
         Row: {
           approval_status: string

@@ -247,6 +247,7 @@ function CreatePlanDialog({ onCreated }: { onCreated: () => void }) {
   const [subjectId, setSubjectId] = useState<string>("");
   const [examDate, setExamDate] = useState("");
   const [planType, setPlanType] = useState<"topic" | "priority">("topic");
+  const [proficiency, setProficiency] = useState<"strong" | "medium" | "weak">("medium");
   const [availability, setAvailability] = useState<Record<string, string[]>>({});
   const [priorities, setPriorities] = useState<string[]>([""]);
 
@@ -255,6 +256,7 @@ function CreatePlanDialog({ onCreated }: { onCreated: () => void }) {
       subject_id: string;
       exam_date: string;
       plan_type: "topic" | "priority";
+      proficiency: "strong" | "medium" | "weak";
       available_hours: Record<string, string[]>;
       priorities?: string[];
     }) => createFn({ data: payload }),

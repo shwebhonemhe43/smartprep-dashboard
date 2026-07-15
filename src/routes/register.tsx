@@ -6,11 +6,19 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BrandLogo } from "@/components/brand-logo";
-import { User, Mail, Lock, Loader2 } from "lucide-react";
+import { User, Mail, Lock, Loader2, GraduationCap, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { registerStudent } from "@/lib/auth.functions";
 import { supabase } from "@/integrations/supabase/client";
+
+const PROGRAM_LEVELS = {
+  NCC: ["NCC Level 3", "NCC Level 4", "NCC Level 5"],
+  HNC: ["Level 4"],
+  HND: ["Level 5"],
+} as const;
+type Program = keyof typeof PROGRAM_LEVELS;
 
 export const Route = createFileRoute("/register")({
   head: () => ({

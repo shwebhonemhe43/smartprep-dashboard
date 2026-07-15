@@ -145,7 +145,12 @@ function StudyPlanPage() {
       ) : (
         <div className="flex flex-col gap-4">
           {plans.map((p) => (
-            <PlanCard key={p.plan.id} entry={p} onOpen={() => setSelectedId(p.plan.id)} />
+            <PlanCard
+              key={p.plan.id}
+              entry={p}
+              onOpen={() => setSelectedId(p.plan.id)}
+              onChanged={() => qc.invalidateQueries({ queryKey: ["my-study-plans"] })}
+            />
           ))}
         </div>
       )}
@@ -153,9 +158,32 @@ function StudyPlanPage() {
   );
 }
 
-function PlanCard({ entry, onOpen }: { entry: StudyPlanWithStats; onOpen: () => void }) {
+function PlanCard({
+  entry,
+  onOpen,
+  onChanged,
+}: {
+  entry: StudyPlanWithStats;
+  onOpen: () => void;
+  onChanged: () => void;
+}) {
   const { plan, subject, total_items, completed_items } = entry;
   const pct = total_items ? Math.round((completed_items / total_items) * 100) : 0;
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const deleteFn = useServerFn(deleteStudyPlan);
+  const deleteMut = useMutation({
+    mutationFn: () => deleteFn({ data: { plan_id: plan.id } }),
+    onSuccess: () => {
+      toast.success("Study plan deleted");
+      setDeleteOpen(false);
+      onChanged();
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Failed to delete plan"),
+  });
+
+  const stop = (e: React.MouseEvent | React.KeyboardEvent) => e.stopPropagation();
+
   return (
     <Card
       role="button"
@@ -188,6 +216,32 @@ function PlanCard({ entry, onOpen }: { entry: StudyPlanWithStats; onOpen: () => 
               {plan.subject_proficiency} proficiency
             </Badge>
           )}
+          <div className="flex items-center gap-1" onClick={stop} onKeyDown={stop}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={(e) => {
+                e.stopPropagation();
+                setEditOpen(true);
+              }}
+              aria-label="Edit study plan"
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-destructive hover:text-destructive"
+              onClick={(e) => {
+                e.stopPropagation();
+                setDeleteOpen(true);
+              }}
+              aria-label="Delete study plan"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
           <ChevronRight className="hidden h-5 w-5 text-muted-foreground sm:block" />
         </div>
       </CardHeader>
@@ -207,7 +261,44 @@ function PlanCard({ entry, onOpen }: { entry: StudyPlanWithStats; onOpen: () => 
           </p>
         </div>
       </CardContent>
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <EditPlanDialog
+          plan={plan}
+          subject={subject}
+          onSaved={() => {
+            setEditOpen(false);
+            onChanged();
+          }}
+        />
+      </Dialog>
+
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent onClick={stop}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this study plan?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes the plan and all its scheduled sessions. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteMut.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deleteMut.isPending}
+              onClick={(e) => {
+                e.preventDefault();
+                deleteMut.mutate();
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteMut.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
+
   );
 }
 

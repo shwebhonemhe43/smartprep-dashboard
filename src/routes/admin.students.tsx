@@ -185,6 +185,18 @@ function Students() {
                           <Badge variant="secondary">Pre-Register</Badge>
                         )}
                       </TableCell>
+                      <TableCell>
+                        {r.approval_status === "approved" ? (
+                          <Badge className="bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/20 dark:text-emerald-400">
+                            Approved
+                          </Badge>
+                        ) : r.approval_status === "pending" ? (
+                          <Badge className="bg-amber-500/15 text-amber-700 hover:bg-amber-500/20 dark:text-amber-400">
+                            Pending
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary">—</Badge>
+                        )}
                       <TableCell className="text-right">
                         <Button
                           variant="ghost"

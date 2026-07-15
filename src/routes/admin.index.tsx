@@ -139,6 +139,116 @@ function AdminDashboard() {
   );
 }
 
+function StatCards() {
+  const fn = useServerFn(getAdminStats);
+  const { data, isLoading } = useQuery({
+    queryKey: ["admin-stats"],
+    queryFn: () => fn(),
+  });
+
+  const items = [
+    {
+      label: "Total Students",
+      value: data?.totalStudents ?? 0,
+      hint: data ? `+${data.newStudentsThisWeek} this week` : "—",
+      icon: Users,
+    },
+    {
+      label: "Learning Resources",
+      value: data?.totalResources ?? 0,
+      hint: data ? `+${data.newResourcesThisWeek} this week` : "—",
+      icon: BookOpen,
+    },
+    {
+      label: "Active This Week",
+      value: data?.activeThisWeek ?? 0,
+      hint: "Unique students engaged",
+      icon: TrendingUp,
+    },
+    {
+      label: "Study Plans Generated",
+      value: data?.totalStudyPlans ?? 0,
+      hint: data ? `+${data.newStudyPlansThisWeek} this week` : "—",
+      icon: BarChart3,
+    },
+  ];
+
+  return (
+    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      {items.map((s) => (
+        <Card
+          key={s.label}
+          className="rounded-2xl border-border/60 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-elegant"
+        >
+          <CardContent className="p-6">
+            <div className="flex items-start justify-between">
+              <p className="text-sm font-medium text-muted-foreground">{s.label}</p>
+              <s.icon className="h-5 w-5 text-primary" />
+            </div>
+            <div className="mt-4 font-display text-4xl font-extrabold tracking-tight">
+              {isLoading ? (
+                <Loader2 className="h-7 w-7 animate-spin text-muted-foreground" />
+              ) : (
+                s.value.toLocaleString()
+              )}
+            </div>
+            <p className="mt-2 text-xs font-medium text-muted-foreground">{s.hint}</p>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+function RecentActivity() {
+  const fn = useServerFn(getAdminActivity);
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["admin-activity"],
+    queryFn: () => fn(),
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (data.length === 0) {
+    return (
+      <p className="py-6 text-center text-sm text-muted-foreground">
+        No recent activity yet.
+      </p>
+    );
+  }
+
+  const tagStyle = (tag: AdminActivity["tag"]) => {
+    if (tag === "Students") return "bg-primary/10 text-primary";
+    if (tag === "Study Plans") return "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400";
+    return "bg-accent text-accent-foreground";
+  };
+
+  return (
+    <ul className="divide-y divide-border/60">
+      {data.map((a, i) => (
+        <li key={i} className="flex items-start justify-between gap-3 py-3.5">
+          <div className="min-w-0">
+            <p className="text-sm font-medium leading-snug">{a.title}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{formatRelative(a.when)}</p>
+          </div>
+          <span
+            className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-medium ${tagStyle(a.tag)}`}
+          >
+            {a.tag}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+
 function PendingApprovals() {
   const qc = useQueryClient();
   const listFn = useServerFn(listPendingApprovals);

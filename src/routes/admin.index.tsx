@@ -89,6 +89,9 @@ function AdminDashboard() {
 
       <PendingApprovals />
 
+      <StudentList />
+
+
 
       {/* Stat cards */}
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">

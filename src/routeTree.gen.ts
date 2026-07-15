@@ -29,6 +29,7 @@ import { Route as AdminQuestionsRouteImport } from './routes/admin.questions'
 import { Route as AdminLecturesRouteImport } from './routes/admin.lectures'
 import { Route as StudentSubjectsIndexRouteImport } from './routes/student.subjects.index'
 import { Route as StudentSubjectsIdRouteImport } from './routes/student.subjects.$id'
+import { Route as StudentNotesTopicIdRouteImport } from './routes/student.notes.$topicId'
 
 const StudentRoute = StudentRouteImport.update({
   id: '/student',
@@ -130,6 +131,11 @@ const StudentSubjectsIdRoute = StudentSubjectsIdRouteImport.update({
   path: '/subjects/$id',
   getParentRoute: () => StudentRoute,
 } as any)
+const StudentNotesTopicIdRoute = StudentNotesTopicIdRouteImport.update({
+  id: '/notes/$topicId',
+  path: '/notes/$topicId',
+  getParentRoute: () => StudentRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -150,6 +156,7 @@ export interface FileRoutesByFullPath {
   '/student/study-plan': typeof StudentStudyPlanRoute
   '/admin/': typeof AdminIndexRoute
   '/student/': typeof StudentIndexRoute
+  '/student/notes/$topicId': typeof StudentNotesTopicIdRoute
   '/student/subjects/$id': typeof StudentSubjectsIdRoute
   '/student/subjects/': typeof StudentSubjectsIndexRoute
 }
@@ -170,6 +177,7 @@ export interface FileRoutesByTo {
   '/student/study-plan': typeof StudentStudyPlanRoute
   '/admin': typeof AdminIndexRoute
   '/student': typeof StudentIndexRoute
+  '/student/notes/$topicId': typeof StudentNotesTopicIdRoute
   '/student/subjects/$id': typeof StudentSubjectsIdRoute
   '/student/subjects': typeof StudentSubjectsIndexRoute
 }
@@ -193,6 +201,7 @@ export interface FileRoutesById {
   '/student/study-plan': typeof StudentStudyPlanRoute
   '/admin/': typeof AdminIndexRoute
   '/student/': typeof StudentIndexRoute
+  '/student/notes/$topicId': typeof StudentNotesTopicIdRoute
   '/student/subjects/$id': typeof StudentSubjectsIdRoute
   '/student/subjects/': typeof StudentSubjectsIndexRoute
 }
@@ -217,6 +226,7 @@ export interface FileRouteTypes {
     | '/student/study-plan'
     | '/admin/'
     | '/student/'
+    | '/student/notes/$topicId'
     | '/student/subjects/$id'
     | '/student/subjects/'
   fileRoutesByTo: FileRoutesByTo
@@ -237,6 +247,7 @@ export interface FileRouteTypes {
     | '/student/study-plan'
     | '/admin'
     | '/student'
+    | '/student/notes/$topicId'
     | '/student/subjects/$id'
     | '/student/subjects'
   id:
@@ -259,6 +270,7 @@ export interface FileRouteTypes {
     | '/student/study-plan'
     | '/admin/'
     | '/student/'
+    | '/student/notes/$topicId'
     | '/student/subjects/$id'
     | '/student/subjects/'
   fileRoutesById: FileRoutesById
@@ -414,6 +426,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudentSubjectsIdRouteImport
       parentRoute: typeof StudentRoute
     }
+    '/student/notes/$topicId': {
+      id: '/student/notes/$topicId'
+      path: '/notes/$topicId'
+      fullPath: '/student/notes/$topicId'
+      preLoaderRoute: typeof StudentNotesTopicIdRouteImport
+      parentRoute: typeof StudentRoute
+    }
   }
 }
 
@@ -444,6 +463,7 @@ interface StudentRouteChildren {
   StudentResourcesRoute: typeof StudentResourcesRoute
   StudentStudyPlanRoute: typeof StudentStudyPlanRoute
   StudentIndexRoute: typeof StudentIndexRoute
+  StudentNotesTopicIdRoute: typeof StudentNotesTopicIdRoute
   StudentSubjectsIdRoute: typeof StudentSubjectsIdRoute
   StudentSubjectsIndexRoute: typeof StudentSubjectsIndexRoute
 }
@@ -455,6 +475,7 @@ const StudentRouteChildren: StudentRouteChildren = {
   StudentResourcesRoute: StudentResourcesRoute,
   StudentStudyPlanRoute: StudentStudyPlanRoute,
   StudentIndexRoute: StudentIndexRoute,
+  StudentNotesTopicIdRoute: StudentNotesTopicIdRoute,
   StudentSubjectsIdRoute: StudentSubjectsIdRoute,
   StudentSubjectsIndexRoute: StudentSubjectsIndexRoute,
 }
@@ -473,13 +494,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

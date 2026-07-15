@@ -22,6 +22,7 @@ function QuizPage() {
   const { topicId } = Route.useParams();
   const fn = useServerFn(getOrGenerateTopicQuiz);
   const markFn = useServerFn(markTopicProgress);
+  const recordFn = useServerFn(recordQuizAttempt);
   const saveFn = useServerFn(saveQuizSet);
   const checkFn = useServerFn(checkQuizSaved);
   const qc = useQueryClient();

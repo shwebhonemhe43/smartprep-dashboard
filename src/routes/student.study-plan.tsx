@@ -253,6 +253,48 @@ function Stat({ icon: Icon, label, value }: { icon: any; label: string; value: s
   );
 }
 
+function ScheduleItem({
+  it,
+  onToggle,
+  showDate,
+}: {
+  it: StudyPlanItem & { subjects?: { subject_code: string; subject_name: string } | null };
+  onToggle: (v: boolean) => void;
+  showDate?: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex items-start gap-3 rounded-lg border border-border/60 p-3 transition",
+        it.completed && "bg-emerald-50/60 border-emerald-200 dark:bg-emerald-950/20",
+      )}
+    >
+      <Checkbox
+        checked={it.completed}
+        onCheckedChange={(v) => onToggle(Boolean(v))}
+        className="mt-1"
+      />
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+          {showDate && (
+            <span className="font-medium text-foreground/80">
+              {new Date(it.date).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}
+            </span>
+          )}
+          {it.start_time && it.end_time && (
+            <span className="font-mono">{it.start_time} – {it.end_time}</span>
+          )}
+          <span>· {it.duration_minutes} min</span>
+        </div>
+        <p className={cn("mt-0.5 font-medium", it.completed && "text-muted-foreground line-through")}>
+          {it.title}
+        </p>
+        {it.description && <p className="mt-1 text-sm text-muted-foreground">{it.description}</p>}
+      </div>
+    </div>
+  );
+}
+
 function CreatePlanDialog({ onCreated }: { onCreated: () => void }) {
   const createFn = useServerFn(createStudyPlan);
   const [examDate, setExamDate] = useState("");

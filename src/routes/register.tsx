@@ -102,7 +102,7 @@ function RegisterPage() {
               className="space-y-4"
               onSubmit={(e) => {
                 e.preventDefault();
-                setTouched({ name: true, email: true, password: true, confirm: true });
+                setTouched({ name: true, email: true, password: true, confirm: true, level: true });
                 if (canSubmit && !mutation.isPending) mutation.mutate();
               }}
             >

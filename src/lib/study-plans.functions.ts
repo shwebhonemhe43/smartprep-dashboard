@@ -323,6 +323,7 @@ Return only the JSON object.`;
         exam_date: data.exam_date,
         available_hours: data.available_hours,
         priorities: data.plan_type === "priority" ? data.priorities ?? [] : null,
+        subject_proficiency: data.proficiency,
         generated_plan: { items: validItems },
         status: "active",
       })

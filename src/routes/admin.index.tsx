@@ -17,24 +17,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { approveStudent, listPendingApprovals, listStudentProfiles } from "@/lib/approvals.functions";
+import { getAdminStats, getAdminActivity, type AdminActivity } from "@/lib/admin-dashboard.functions";
 
 export const Route = createFileRoute("/admin/")({
   component: AdminDashboard,
 });
-
-type Stat = {
-  label: string;
-  value: string;
-  hint: string;
-  icon: React.ComponentType<{ className?: string }>;
-};
-
-const stats: Stat[] = [
-  { label: "Total Students", value: "1,248", hint: "+12.4%", icon: Users },
-  { label: "Learning Resources", value: "342", hint: "+5 this week", icon: BookOpen },
-  { label: "Active This Week", value: "876", hint: "+8.1%", icon: TrendingUp },
-  { label: "Study Plans Generated", value: "2,914", hint: "+18.2%", icon: BarChart3 },
-];
 
 type QuickAction = {
   title: string;
@@ -60,19 +47,22 @@ const quickActions: QuickAction[] = [
   },
 ];
 
-type Activity = {
-  title: string;
-  when: string;
-  tag: "Students" | "Resources";
-};
+function formatRelative(iso: string): string {
+  const then = new Date(iso).getTime();
+  const diff = Date.now() - then;
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "Just now";
+  if (mins < 60) return `${mins} minute${mins === 1 ? "" : "s"} ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs} hour${hrs === 1 ? "" : "s"} ago`;
+  const days = Math.floor(hrs / 24);
+  if (days === 1) return "Yesterday";
+  if (days < 30) return `${days} days ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months} month${months === 1 ? "" : "s"} ago`;
+  return new Date(iso).toLocaleDateString();
+}
 
-const activity: Activity[] = [
-  { title: "Imported 42 student records", when: "2 hours ago", tag: "Students" },
-  { title: "Uploaded 'Data Structures — Week 4.pdf'", when: "5 hours ago", tag: "Resources" },
-  { title: "Approved 8 new registrations", when: "Yesterday", tag: "Students" },
-  { title: "Published new practice quiz set", when: "2 days ago", tag: "Resources" },
-  { title: "Updated Networking syllabus outline", when: "3 days ago", tag: "Resources" },
-];
 
 function AdminDashboard() {
   return (

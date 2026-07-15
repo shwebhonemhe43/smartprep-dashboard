@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getOrGenerateTopicQuiz } from "@/lib/topic-quiz.functions";
 import { markTopicProgress } from "@/lib/topic-progress.functions";
+import { recordQuizAttempt } from "@/lib/quiz-attempts.functions";
 import { saveQuizSet, checkQuizSaved } from "@/lib/saved-quizzes.functions";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +22,7 @@ function QuizPage() {
   const { topicId } = Route.useParams();
   const fn = useServerFn(getOrGenerateTopicQuiz);
   const markFn = useServerFn(markTopicProgress);
+  const recordFn = useServerFn(recordQuizAttempt);
   const saveFn = useServerFn(saveQuizSet);
   const checkFn = useServerFn(checkQuizSaved);
   const qc = useQueryClient();
@@ -76,8 +78,20 @@ function QuizPage() {
   useEffect(() => {
     if (submitted) {
       markFn({ data: { topic_id: topicId, kind: "quiz" } }).catch(() => {});
+      recordFn({
+        data: {
+          topic_id: topicId,
+          subject_id: (data as any)?.subject_id ?? null,
+          correct_count: score,
+          total_count: total,
+        },
+      })
+        .then(() => {
+          qc.invalidateQueries({ queryKey: ["my-profile"] });
+        })
+        .catch(() => {});
     }
-  }, [submitted, topicId, markFn]);
+  }, [submitted, topicId, markFn, recordFn, score, total, data, qc]);
 
   const reset = () => {
     setAnswers({});

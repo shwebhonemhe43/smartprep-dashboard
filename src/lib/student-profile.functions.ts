@@ -82,7 +82,15 @@ export const getMyProfile = createServerFn({ method: "GET" })
       .select("score")
       .eq("student_id", uid)
       .not("score", "is", null);
-    const scores = ((tests ?? []) as Array<{ score: number }>).map((t) => Number(t.score));
+    const testScores = ((tests ?? []) as Array<{ score: number }>).map((t) => Number(t.score));
+
+    const { data: attempts } = await sb
+      .from("quiz_attempts")
+      .select("score_pct")
+      .eq("student_id", uid);
+    const attemptScores = ((attempts ?? []) as Array<{ score_pct: number }>).map((a) => Number(a.score_pct));
+
+    const scores = [...testScores, ...attemptScores];
     const quiz_avg_pct =
       scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
 

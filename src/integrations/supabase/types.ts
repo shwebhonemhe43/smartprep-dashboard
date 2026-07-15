@@ -129,6 +129,39 @@ export type Database = {
         }
         Relationships: []
       }
+      quiz_attempts: {
+        Row: {
+          correct_count: number
+          created_at: string
+          id: string
+          score_pct: number
+          student_id: string
+          subject_id: string | null
+          topic_id: string
+          total_count: number
+        }
+        Insert: {
+          correct_count: number
+          created_at?: string
+          id?: string
+          score_pct: number
+          student_id: string
+          subject_id?: string | null
+          topic_id: string
+          total_count: number
+        }
+        Update: {
+          correct_count?: number
+          created_at?: string
+          id?: string
+          score_pct?: number
+          student_id?: string
+          subject_id?: string | null
+          topic_id?: string
+          total_count?: number
+        }
+        Relationships: []
+      }
       saved_flashcards: {
         Row: {
           created_at: string

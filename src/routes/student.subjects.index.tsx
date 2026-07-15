@@ -51,18 +51,26 @@ function StudentSubjects() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {subjects.map((s) => (
-            <Card key={s.id} className="rounded-2xl border-border/60 shadow-soft transition hover:shadow-elegant">
-              <CardHeader className="space-y-2">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-mono text-xs text-muted-foreground">{s.subject_code}</span>
-                  <Badge variant="secondary">{s.level}</Badge>
-                </div>
-                <CardTitle className="font-display text-lg">{s.subject_name}</CardTitle>
-                {s.description && (
-                  <CardDescription className="line-clamp-3">{s.description}</CardDescription>
-                )}
-              </CardHeader>
-            </Card>
+            <Link
+              key={s.id}
+              to="/student/subjects/$id"
+              params={{ id: s.id }}
+              className="block"
+            >
+              <Card className="h-full rounded-2xl border-border/60 shadow-soft transition hover:shadow-elegant hover:border-primary/40">
+                <CardHeader className="space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono text-xs text-muted-foreground">{s.subject_code}</span>
+                    <Badge variant="secondary">{s.level}</Badge>
+                  </div>
+                  <CardTitle className="font-display text-lg">{s.subject_name}</CardTitle>
+                  {s.description && (
+                    <CardDescription className="line-clamp-3">{s.description}</CardDescription>
+                  )}
+                </CardHeader>
+              </Card>
+            </Link>
+
           ))}
         </div>
       )}

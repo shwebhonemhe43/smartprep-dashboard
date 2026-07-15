@@ -30,6 +30,7 @@ import {
   deletePreRegisteredStudent,
   listPreRegisteredStudents,
 } from "@/lib/students.functions";
+import { listStudentProfiles } from "@/lib/approvals.functions";
 
 export const Route = createFileRoute("/admin/students")({ component: Students });
 

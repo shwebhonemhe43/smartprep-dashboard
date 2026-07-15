@@ -1,11 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, FileText, Loader2, Presentation, BookOpen, Brain, HelpCircle } from "lucide-react";
+import { ArrowLeft, FileText, Loader2, Presentation, BookOpen, Brain, HelpCircle, Check } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { getSubjectWithTopics } from "@/lib/student-subjects.functions";
+import { listMyProgressForSubject } from "@/lib/topic-progress.functions";
 
 export const Route = createFileRoute("/student/subjects/$id")({
   head: () => ({ meta: [{ title: "Subject — NCC SmartPrep" }] }),
@@ -15,10 +17,19 @@ export const Route = createFileRoute("/student/subjects/$id")({
 function SubjectDetail() {
   const { id } = Route.useParams();
   const getFn = useServerFn(getSubjectWithTopics);
+  const progressFn = useServerFn(listMyProgressForSubject);
   const { data, isLoading } = useQuery({
     queryKey: ["subject-detail", id],
     queryFn: () => getFn({ data: { id } }),
   });
+  const { data: progressData } = useQuery({
+    queryKey: ["subject-progress", id],
+    queryFn: () => progressFn({ data: { subject_id: id } }),
+    refetchOnWindowFocus: true,
+  });
+  const progressByTopic = new Map(
+    (progressData?.progress ?? []).map((p) => [p.topic_id, p]),
+  );
 
   if (isLoading) {
     return (

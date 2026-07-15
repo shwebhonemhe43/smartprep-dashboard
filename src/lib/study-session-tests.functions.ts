@@ -59,15 +59,48 @@ async function callAI(apiKey: string, messages: any[], expectJson: boolean) {
 }
 
 function extractJson(raw: string): any {
-  const s = raw.trim().replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
+  let s = raw.trim();
+  // Strip markdown code fences (```json ... ``` or ``` ... ```)
+  s = s.replace(/^```(?:json|JSON)?\s*/i, "").replace(/```\s*$/i, "").trim();
+
+  // Try direct parse first
   try {
     return JSON.parse(s);
   } catch {
-    const m = s.match(/\{[\s\S]*\}/);
-    if (m) return JSON.parse(m[0]);
-    throw new Error("AI returned invalid JSON");
+    // Fall through to balanced-object extraction
   }
+
+  // Find first '{' and walk to its matching '}', respecting strings/escapes
+  const start = s.indexOf("{");
+  if (start === -1) throw new Error("AI returned no JSON object");
+  let depth = 0;
+  let inStr = false;
+  let esc = false;
+  for (let i = start; i < s.length; i++) {
+    const ch = s[i];
+    if (inStr) {
+      if (esc) esc = false;
+      else if (ch === "\\") esc = true;
+      else if (ch === '"') inStr = false;
+      continue;
+    }
+    if (ch === '"') inStr = true;
+    else if (ch === "{") depth++;
+    else if (ch === "}") {
+      depth--;
+      if (depth === 0) {
+        const candidate = s.slice(start, i + 1);
+        try {
+          return JSON.parse(candidate);
+        } catch {
+          throw new Error("AI returned malformed JSON");
+        }
+      }
+    }
+  }
+  throw new Error("AI returned incomplete JSON");
 }
+
 
 export const getOrGenerateSessionTest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -144,7 +177,7 @@ Return ONLY valid JSON in this exact shape:
 }`;
 
     const raw = await callAI(apiKey, [
-      { role: "system", content: "You produce well-formed JSON assessments. Output only JSON, no prose." },
+      { role: "system", content: "You produce well-formed JSON assessments. Output ONLY a single raw JSON object. Do NOT wrap in markdown code fences. Do NOT include any text before or after the JSON." },
       { role: "user", content: prompt },
     ], true);
     const parsed = extractJson(raw);
@@ -237,7 +270,7 @@ Expected: ${q.expected_answer}
 Student answer: ${data.short_answers[i] ?? ""}`).join("\n\n")}`;
 
       const raw = await callAI(apiKey, [
-        { role: "system", content: "You are a fair academic grader. Output only JSON." },
+        { role: "system", content: "You are a fair academic grader. Output ONLY a single raw JSON object with no markdown fences and no surrounding text." },
         { role: "user", content: evalPrompt },
       ], true);
       const parsed = extractJson(raw);

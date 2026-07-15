@@ -47,7 +47,7 @@ export const approveStudent = createServerFn({ method: "POST" })
 
     const { data: profile, error: fetchErr } = await supabaseAdmin
       .from("student_profiles")
-      .select("id, student_id, full_name, email, program, phone_number")
+      .select("id, student_id, full_name, email, program")
       .eq("id", data.id)
       .maybeSingle();
     if (fetchErr) throw new Error(fetchErr.message);

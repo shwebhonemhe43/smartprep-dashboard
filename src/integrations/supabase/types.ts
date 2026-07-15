@@ -373,6 +373,107 @@ export type Database = {
           },
         ]
       }
+      study_plan_items: {
+        Row: {
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          date: string
+          description: string | null
+          duration_minutes: number
+          end_time: string | null
+          id: string
+          start_time: string | null
+          student_id: string
+          study_plan_id: string
+          subject_id: string | null
+          title: string
+          topic_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          date: string
+          description?: string | null
+          duration_minutes?: number
+          end_time?: string | null
+          id?: string
+          start_time?: string | null
+          student_id: string
+          study_plan_id: string
+          subject_id?: string | null
+          title: string
+          topic_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          date?: string
+          description?: string | null
+          duration_minutes?: number
+          end_time?: string | null
+          id?: string
+          start_time?: string | null
+          student_id?: string
+          study_plan_id?: string
+          subject_id?: string | null
+          title?: string
+          topic_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_plan_items_study_plan_id_fkey"
+            columns: ["study_plan_id"]
+            isOneToOne: false
+            referencedRelation: "study_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      study_plans: {
+        Row: {
+          available_hours: Json
+          created_at: string
+          exam_date: string
+          generated_plan: Json | null
+          id: string
+          plan_type: string
+          priorities: Json | null
+          status: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          available_hours?: Json
+          created_at?: string
+          exam_date: string
+          generated_plan?: Json | null
+          id?: string
+          plan_type: string
+          priorities?: Json | null
+          status?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          available_hours?: Json
+          created_at?: string
+          exam_date?: string
+          generated_plan?: Json | null
+          id?: string
+          plan_type?: string
+          priorities?: Json | null
+          status?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       subjects: {
         Row: {
           created_at: string

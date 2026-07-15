@@ -162,6 +162,51 @@ export type Database = {
         }
         Relationships: []
       }
+      student_topic_notes: {
+        Row: {
+          created_at: string
+          id: string
+          notes_content: string
+          student_id: string
+          subject_id: string
+          topic_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes_content: string
+          student_id: string
+          subject_id: string
+          topic_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes_content?: string
+          student_id?: string
+          subject_id?: string
+          topic_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_topic_notes_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_topic_notes_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "lecture_files"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subjects: {
         Row: {
           created_at: string

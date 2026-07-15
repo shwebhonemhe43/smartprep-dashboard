@@ -22,7 +22,14 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,7 +41,13 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Progress } from "@/components/ui/progress";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
 import {
@@ -50,7 +63,6 @@ import {
   type StudyPlanWithStats,
   type SubjectRef,
 } from "@/lib/study-plans.functions";
-
 
 export const Route = createFileRoute("/student/study-plan")({
   head: () => ({ meta: [{ title: "Study Plan — NCC SmartPrep" }] }),
@@ -201,7 +213,9 @@ function PlanCard({
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 space-y-1">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Subject</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Subject
+            </p>
             <CardTitle className="flex items-center gap-2 font-display text-xl">
               <Sparkles className="h-5 w-5 shrink-0 text-primary" />
               <span className="truncate">{subject?.subject_name ?? "Study Plan"}</span>
@@ -215,7 +229,10 @@ function PlanCard({
 
         {/* Badges */}
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant={plan.plan_type === "topic" ? "secondary" : "default"} className="w-fit capitalize">
+          <Badge
+            variant={plan.plan_type === "topic" ? "secondary" : "default"}
+            className="w-fit capitalize"
+          >
             {plan.plan_type} based
           </Badge>
           {plan.subject_proficiency && (
@@ -227,7 +244,11 @@ function PlanCard({
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3">
-          <Stat icon={CalendarDays} label="Exam date" value={new Date(plan.exam_date).toLocaleDateString()} />
+          <Stat
+            icon={CalendarDays}
+            label="Exam date"
+            value={new Date(plan.exam_date).toLocaleDateString()}
+          />
           <Stat icon={Clock} label="Remaining days" value={`${daysUntil(plan.exam_date)}`} />
           <Stat icon={Target} label="Sessions" value={`${total_items}`} />
         </div>
@@ -287,7 +308,8 @@ function PlanCard({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this study plan?</AlertDialogTitle>
             <AlertDialogDescription>
-              This permanently removes the plan and all its scheduled sessions. This cannot be undone.
+              This permanently removes the plan and all its scheduled sessions. This cannot be
+              undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -379,7 +401,10 @@ function StudyPlanDetail({
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <Badge variant={plan.plan_type === "topic" ? "secondary" : "default"} className="w-fit capitalize">
+                <Badge
+                  variant={plan.plan_type === "topic" ? "secondary" : "default"}
+                  className="w-fit capitalize"
+                >
                   {plan.plan_type} based
                 </Badge>
                 {plan.subject_proficiency && (
@@ -391,7 +416,11 @@ function StudyPlanDetail({
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
               <Stat icon={BookOpen} label="Subject" value={subject?.subject_code ?? "—"} />
-              <Stat icon={CalendarDays} label="Exam date" value={new Date(plan.exam_date).toLocaleDateString()} />
+              <Stat
+                icon={CalendarDays}
+                label="Exam date"
+                value={new Date(plan.exam_date).toLocaleDateString()}
+              />
               <Stat icon={Clock} label="Remaining days" value={`${daysUntil(plan.exam_date)}`} />
               <Stat icon={Target} label="Sessions" value={`${items.length}`} />
               <div>
@@ -454,13 +483,7 @@ function Stat({ icon: Icon, label, value }: { icon: any; label: string; value: s
   );
 }
 
-function ScheduleItem({
-  it,
-  onToggle,
-}: {
-  it: StudyPlanItem;
-  onToggle: (v: boolean) => void;
-}) {
+function ScheduleItem({ it, onToggle }: { it: StudyPlanItem; onToggle: (v: boolean) => void }) {
   return (
     <div
       className={cn(
@@ -468,7 +491,11 @@ function ScheduleItem({
         it.completed && "bg-emerald-50/60 border-emerald-200 dark:bg-emerald-950/20",
       )}
     >
-      <Checkbox checked={it.completed} onCheckedChange={(v) => onToggle(Boolean(v))} className="mt-1" />
+      <Checkbox
+        checked={it.completed}
+        onCheckedChange={(v) => onToggle(Boolean(v))}
+        className="mt-1"
+      />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
           <span>
@@ -481,7 +508,9 @@ function ScheduleItem({
           )}
           <span>· {it.duration_minutes} min</span>
         </div>
-        <p className={cn("mt-0.5 font-medium", it.completed && "text-muted-foreground line-through")}>
+        <p
+          className={cn("mt-0.5 font-medium", it.completed && "text-muted-foreground line-through")}
+        >
           {it.title}
         </p>
         {it.description && <p className="mt-1 text-sm text-muted-foreground">{it.description}</p>}
@@ -537,9 +566,22 @@ function CreatePlanDialog({ onCreated }: { onCreated: () => void }) {
     if (planType === "priority") {
       const cleaned = priorities.map((p) => p.trim()).filter(Boolean);
       if (cleaned.length === 0) return toast.error("Add at least one priority");
-      mut.mutate({ subject_id: subjectId, exam_date: examDate, plan_type: planType, proficiency, available_hours: availability, priorities: cleaned });
+      mut.mutate({
+        subject_id: subjectId,
+        exam_date: examDate,
+        plan_type: planType,
+        proficiency,
+        available_hours: availability,
+        priorities: cleaned,
+      });
     } else {
-      mut.mutate({ subject_id: subjectId, exam_date: examDate, plan_type: planType, proficiency, available_hours: availability });
+      mut.mutate({
+        subject_id: subjectId,
+        exam_date: examDate,
+        plan_type: planType,
+        proficiency,
+        available_hours: availability,
+      });
     }
   };
 
@@ -566,7 +608,13 @@ function CreatePlanDialog({ onCreated }: { onCreated: () => void }) {
           <Select value={subjectId} onValueChange={setSubjectId}>
             <SelectTrigger>
               <SelectValue
-                placeholder={loadingSubjects ? "Loading..." : subjects && subjects.length === 0 ? "No enrolled subjects" : "Select a subject"}
+                placeholder={
+                  loadingSubjects
+                    ? "Loading..."
+                    : subjects && subjects.length === 0
+                      ? "No enrolled subjects"
+                      : "Select a subject"
+                }
               />
             </SelectTrigger>
             <SelectContent>
@@ -578,7 +626,9 @@ function CreatePlanDialog({ onCreated }: { onCreated: () => void }) {
             </SelectContent>
           </Select>
           {subjects && subjects.length === 0 && (
-            <p className="text-xs text-muted-foreground">Enroll in a subject first to create a study plan.</p>
+            <p className="text-xs text-muted-foreground">
+              Enroll in a subject first to create a study plan.
+            </p>
           )}
         </div>
 
@@ -627,16 +677,26 @@ function CreatePlanDialog({ onCreated }: { onCreated: () => void }) {
         <div className="space-y-2">
           <Label>Subject proficiency</Label>
           <p className="text-xs text-muted-foreground">
-            Tell us how confident you are in this subject so AI can adjust your study time and difficulty.
+            Tell us how confident you are in this subject so AI can adjust your study time and
+            difficulty.
           </p>
-          <Select value={proficiency} onValueChange={(v) => setProficiency(v as "strong" | "medium" | "weak")}>
+          <Select
+            value={proficiency}
+            onValueChange={(v) => setProficiency(v as "strong" | "medium" | "weak")}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Select proficiency" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="strong">Strong — I understand this subject well (more revision & practice)</SelectItem>
-              <SelectItem value="medium">Medium — I have average understanding (balanced study)</SelectItem>
-              <SelectItem value="weak">Weak — I need more help with this subject (more learning time)</SelectItem>
+              <SelectItem value="strong">
+                Strong — I understand this subject well (more revision & practice)
+              </SelectItem>
+              <SelectItem value="medium">
+                Medium — I have average understanding (balanced study)
+              </SelectItem>
+              <SelectItem value="weak">
+                Weak — I need more help with this subject (more learning time)
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -652,7 +712,9 @@ function CreatePlanDialog({ onCreated }: { onCreated: () => void }) {
                 <tr>
                   <th className="p-2 text-left">Day</th>
                   {SLOTS.map((s) => (
-                    <th key={s} className="p-2 text-center capitalize">{s}</th>
+                    <th key={s} className="p-2 text-center capitalize">
+                      {s}
+                    </th>
                   ))}
                 </tr>
               </thead>
@@ -776,9 +838,20 @@ function EditPlanDialog({
     if (plan.plan_type === "priority") {
       const cleaned = priorities.map((p) => p.trim()).filter(Boolean);
       if (cleaned.length === 0) return toast.error("Add at least one priority");
-      mut.mutate({ plan_id: plan.id, exam_date: examDate, proficiency, available_hours: availability, priorities: cleaned });
+      mut.mutate({
+        plan_id: plan.id,
+        exam_date: examDate,
+        proficiency,
+        available_hours: availability,
+        priorities: cleaned,
+      });
     } else {
-      mut.mutate({ plan_id: plan.id, exam_date: examDate, proficiency, available_hours: availability });
+      mut.mutate({
+        plan_id: plan.id,
+        exam_date: examDate,
+        proficiency,
+        available_hours: availability,
+      });
     }
   };
 
@@ -795,7 +868,8 @@ function EditPlanDialog({
             {subject ? `${subject.subject_name} (${subject.subject_code})` : "—"}
           </p>
           <p className="mt-2 text-xs text-muted-foreground">
-            Subject and plan type ({plan.plan_type} based) cannot be changed. Saving will regenerate the schedule.
+            Subject and plan type ({plan.plan_type} based) cannot be changed. Saving will regenerate
+            the schedule.
           </p>
         </div>
 
@@ -812,14 +886,23 @@ function EditPlanDialog({
 
         <div className="space-y-2">
           <Label>Subject proficiency</Label>
-          <Select value={proficiency} onValueChange={(v) => setProficiency(v as "strong" | "medium" | "weak")}>
+          <Select
+            value={proficiency}
+            onValueChange={(v) => setProficiency(v as "strong" | "medium" | "weak")}
+          >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="strong">Strong — I understand this subject well (more revision & practice)</SelectItem>
-              <SelectItem value="medium">Medium — I have average understanding (balanced study)</SelectItem>
-              <SelectItem value="weak">Weak — I need more help with this subject (more learning time)</SelectItem>
+              <SelectItem value="strong">
+                Strong — I understand this subject well (more revision & practice)
+              </SelectItem>
+              <SelectItem value="medium">
+                Medium — I have average understanding (balanced study)
+              </SelectItem>
+              <SelectItem value="weak">
+                Weak — I need more help with this subject (more learning time)
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -835,7 +918,9 @@ function EditPlanDialog({
                 <tr>
                   <th className="p-2 text-left">Day</th>
                   {SLOTS.map((s) => (
-                    <th key={s} className="p-2 text-center capitalize">{s}</th>
+                    <th key={s} className="p-2 text-center capitalize">
+                      {s}
+                    </th>
                   ))}
                 </tr>
               </thead>
@@ -907,4 +992,3 @@ function EditPlanDialog({
     </DialogContent>
   );
 }
-

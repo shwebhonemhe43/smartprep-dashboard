@@ -10,6 +10,7 @@ import { BrandLogo } from "@/components/brand-logo";
 import { User, Mail, Lock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { registerStudent } from "@/lib/auth.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/register")({
   head: () => ({

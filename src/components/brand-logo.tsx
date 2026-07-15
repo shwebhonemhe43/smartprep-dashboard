@@ -26,6 +26,7 @@ export function BrandLogo({
         alt="Grab That Distinction"
         className={cn(
           "w-auto rounded-lg transition-transform group-hover:scale-[1.02]",
+          variant === "default" && "dark:bg-white/95 dark:p-1 dark:shadow-sm",
           variant === "on-dark" && "bg-white/95 p-1 shadow-sm",
           sizeClasses[size]
         )}

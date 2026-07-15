@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BrandLogo } from "./brand-logo";
+import { ThemeToggle } from "./theme-toggle";
 
 const links = [
   { label: "Home", href: "#home" },

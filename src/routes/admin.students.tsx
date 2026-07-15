@@ -227,6 +227,8 @@ function Students() {
           </p>
         </CardContent>
       </Card>
+      <StudentProfilesCard />
+
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-md">

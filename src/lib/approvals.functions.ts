@@ -84,7 +84,7 @@ export const approveStudent = createServerFn({ method: "POST" })
           student_id: profile.student_id,
           full_name: profile.full_name,
           email: profile.email,
-          phone_number: profile.phone_number ?? "-",
+          phone_number: "-",
           program: profile.program ?? "NCC",
           status: "registered",
           register_status: "admin-register",

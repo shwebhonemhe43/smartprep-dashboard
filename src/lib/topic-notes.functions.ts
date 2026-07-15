@@ -8,7 +8,7 @@ export const getOrGenerateTopicNotes = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => idSchema.parse(input))
   .handler(async ({ data, context }) => {
-    // 1. Check for existing notes
+    // 1. Check for existing notes before any AI generation
     const { data: existing, error: exErr } = await context.supabase
       .from("student_topic_notes")
       .select("id, notes_content, created_at, updated_at, topic_id, subject_id")
@@ -16,6 +16,12 @@ export const getOrGenerateTopicNotes = createServerFn({ method: "POST" })
       .eq("topic_id", data.topic_id)
       .maybeSingle();
     if (exErr) throw new Error(exErr.message);
+
+    if (existing) {
+      console.log("Existing notes found - loading saved notes");
+    } else {
+      console.log("No notes found - generating AI notes");
+    }
 
     // Fetch topic + subject info for display
     const { data: topic, error: tErr } = await context.supabase
@@ -87,7 +93,8 @@ Output structure:
     const notesContent: string = json?.choices?.[0]?.message?.content?.trim() ?? "";
     if (!notesContent) throw new Error("AI returned empty notes.");
 
-    // 3. Save
+    // 3. Save exactly one note per student + topic. The database unique constraint
+    // prevents duplicates; if another request saved first, load that saved note.
     const { data: saved, error: insErr } = await context.supabase
       .from("student_topic_notes")
       .insert({
@@ -98,7 +105,30 @@ Output structure:
       })
       .select("notes_content, created_at, updated_at")
       .single();
-    if (insErr) throw new Error(insErr.message);
+    if (insErr) {
+      if (insErr.code === "23505") {
+        const { data: savedExisting, error: savedExistingErr } = await context.supabase
+          .from("student_topic_notes")
+          .select("notes_content, created_at, updated_at")
+          .eq("student_id", context.userId)
+          .eq("topic_id", data.topic_id)
+          .maybeSingle();
+
+        if (savedExistingErr) throw new Error(savedExistingErr.message);
+        if (savedExisting) {
+          console.log("Existing notes found - loading saved notes");
+          return {
+            notes_content: savedExisting.notes_content,
+            created_at: savedExisting.created_at,
+            updated_at: savedExisting.updated_at,
+            topic_name: topicName,
+            subject: topic.subjects,
+          };
+        }
+      }
+
+      throw new Error(insErr.message);
+    }
 
     return {
       notes_content: saved.notes_content,

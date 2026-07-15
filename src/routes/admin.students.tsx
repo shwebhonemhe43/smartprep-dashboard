@@ -197,6 +197,7 @@ function Students() {
                         ) : (
                           <Badge variant="secondary">—</Badge>
                         )}
+                      </TableCell>
                       <TableCell className="text-right">
                         <Button
                           variant="ghost"

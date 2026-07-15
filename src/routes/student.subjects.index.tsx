@@ -1,12 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { BookMarked, Clock, Loader2, ArrowRight } from "lucide-react";
+import { BookMarked, Clock, Loader2, ArrowRight, CheckCircle2 } from "lucide-react";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { listMySubjects } from "@/lib/student-subjects.functions";
+import { listMyEnrollments, enrollInSubject } from "@/lib/enrollments.functions";
 
 export const Route = createFileRoute("/student/subjects/")({
   head: () => ({ meta: [{ title: "Subjects — NCC SmartPrep" }] }),

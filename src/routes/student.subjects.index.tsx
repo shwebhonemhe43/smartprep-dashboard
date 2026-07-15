@@ -106,7 +106,7 @@ function StudentSubjects() {
                   <Progress value={s.progress} className="h-2" />
                 </div>
                 {isEnrolled ? (
-                  <Button asChild size="sm" className="w-full">
+                  <Button asChild size="sm" className="w-full bg-emerald-600 text-white hover:bg-emerald-700">
                     <Link to="/student/subjects/$id" params={{ id: s.id }}>
                       {s.progress > 0 ? "Continue" : "Enrolled"}
                       <ArrowRight className="ml-2 h-4 w-4" />

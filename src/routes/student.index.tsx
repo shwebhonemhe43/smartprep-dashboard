@@ -106,7 +106,7 @@ function StudentDashboard() {
       <Card className="border-border/60 shadow-soft">
         <CardContent className="flex flex-col items-start gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-4">
-            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-rose-500/10 to-rose-500/5 text-rose-500">
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
               <Heart className="h-6 w-6" />
             </span>
             <div>

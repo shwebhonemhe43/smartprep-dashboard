@@ -5,7 +5,7 @@ import { ArrowLeft, FileText, Loader2, Presentation, BookOpen, Brain, HelpCircle
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getSubjectWithTopics, signLectureUrl } from "@/lib/student-subjects.functions";
+import { getSubjectWithTopics } from "@/lib/student-subjects.functions";
 
 export const Route = createFileRoute("/student/subjects/$id")({
   head: () => ({ meta: [{ title: "Subject — NCC SmartPrep" }] }),
@@ -15,20 +15,10 @@ export const Route = createFileRoute("/student/subjects/$id")({
 function SubjectDetail() {
   const { id } = Route.useParams();
   const getFn = useServerFn(getSubjectWithTopics);
-  const signFn = useServerFn(signLectureUrl);
   const { data, isLoading } = useQuery({
     queryKey: ["subject-detail", id],
     queryFn: () => getFn({ data: { id } }),
   });
-
-  const openTopic = async (path: string) => {
-    try {
-      const { url } = await signFn({ data: { path } });
-      window.open(url, "_blank", "noopener,noreferrer");
-    } catch (e) {
-      console.error(e);
-    }
-  };
 
   if (isLoading) {
     return (
@@ -37,6 +27,7 @@ function SubjectDetail() {
       </div>
     );
   }
+
 
   if (!data) return null;
   const { subject, topics } = data;

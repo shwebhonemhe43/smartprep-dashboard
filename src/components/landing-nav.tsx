@@ -40,12 +40,13 @@ export function LandingNav() {
         <div className="flex items-center gap-1 md:hidden">
           <ThemeToggle />
           <button
-          className="grid h-10 w-10 place-items-center rounded-md md:hidden"
-          onClick={() => setOpen((s) => !s)}
-          aria-label="Toggle menu"
-        >
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+            className="grid h-10 w-10 place-items-center rounded-md"
+            onClick={() => setOpen((s) => !s)}
+            aria-label="Toggle menu"
+          >
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
       {open && (
         <div className="border-t border-border/60 bg-background md:hidden">

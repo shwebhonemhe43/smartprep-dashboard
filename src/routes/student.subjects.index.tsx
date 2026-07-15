@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { BookMarked, Clock, Loader2, ArrowRight, CheckCircle2 } from "lucide-react";
@@ -20,6 +20,7 @@ function StudentSubjects() {
   const enrollmentsFn = useServerFn(listMyEnrollments);
   const enrollFn = useServerFn(enrollInSubject);
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const { data, isLoading } = useQuery({
     queryKey: ["my-subjects"],
     queryFn: () => listFn(),
@@ -32,9 +33,10 @@ function StudentSubjects() {
   const enrolledIds = new Set((enrollments ?? []).map((e) => e.subject_id));
   const enrollMutation = useMutation({
     mutationFn: (subject_id: string) => enrollFn({ data: { subject_id } }),
-    onSuccess: () => {
+    onSuccess: async (_res, subject_id) => {
       toast.success("Enrolled successfully");
-      qc.invalidateQueries({ queryKey: ["my-enrollments"] });
+      await qc.invalidateQueries({ queryKey: ["my-enrollments"] });
+      navigate({ to: "/student/subjects/$id", params: { id: subject_id } });
     },
     onError: (e: any) => toast.error(e?.message ?? "Failed to enroll"),
   });

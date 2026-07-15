@@ -58,7 +58,7 @@ function StudyPlanPage() {
   const completed = items.filter((i) => i.completed).length;
   const progressPct = items.length ? Math.round((completed / items.length) * 100) : 0;
 
-  const grouped = useMemo(() => {
+  const groupedByDate = useMemo(() => {
     const map = new Map<string, StudyPlanItem[]>();
     for (const it of items) {
       const arr = map.get(it.date) ?? [];
@@ -66,6 +66,19 @@ function StudyPlanPage() {
       map.set(it.date, arr);
     }
     return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
+  }, [items]);
+
+  const groupedBySubject = useMemo(() => {
+    const map = new Map<string, { label: string; items: (StudyPlanItem & { subjects?: { subject_code: string; subject_name: string } | null })[] }>();
+    for (const it of items as (StudyPlanItem & { subjects?: { subject_code: string; subject_name: string } | null })[]) {
+      const subj = it.subjects;
+      const key = subj ? `${subj.subject_code}` : it.subject_id ?? "__other__";
+      const label = subj ? `${subj.subject_code} — ${subj.subject_name}` : "Other / Priority";
+      const cur = map.get(key) ?? { label, items: [] };
+      cur.items.push(it);
+      map.set(key, cur);
+    }
+    return Array.from(map.values()).sort((a, b) => a.label.localeCompare(b.label));
   }, [items]);
 
   const totalDays = plan

@@ -5,7 +5,6 @@ import {
   BookMarked,
   FileText,
   FileQuestion,
-  Settings,
 } from "lucide-react";
 import { toast } from "sonner";
 import { DashboardShell, type NavGroup } from "@/components/dashboard-shell";
@@ -29,10 +28,6 @@ const groups: NavGroup[] = [
       { title: "Lecture Files", url: "/admin/lectures", icon: FileText },
       { title: "Old Questions", url: "/admin/questions", icon: FileQuestion },
     ],
-  },
-  {
-    label: "",
-    items: [{ title: "Settings", url: "/admin/settings", icon: Settings }],
   },
 ];
 

@@ -40,6 +40,12 @@ function QuizPage() {
     [quiz, answers],
   );
 
+  useEffect(() => {
+    if (submitted) {
+      markFn({ data: { topic_id: topicId, kind: "quiz" } }).catch(() => {});
+    }
+  }, [submitted, topicId, markFn]);
+
   const reset = () => {
     setAnswers({});
     setSubmitted(false);

@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { listMySubjects } from "@/lib/student-subjects.functions";
 
-export const Route = createFileRoute("/student/subjects")({
+export const Route = createFileRoute("/student/subjects/")({
   head: () => ({ meta: [{ title: "Subjects — NCC SmartPrep" }] }),
   component: StudentSubjects,
 });

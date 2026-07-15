@@ -52,6 +52,47 @@ export type Database = {
           },
         ]
       }
+      old_questions: {
+        Row: {
+          created_at: string
+          exam_year: number
+          file_name: string
+          file_type: string
+          file_url: string
+          id: string
+          subject_id: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          exam_year: number
+          file_name: string
+          file_type: string
+          file_url: string
+          id?: string
+          subject_id: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          exam_year?: number
+          file_name?: string
+          file_type?: string
+          file_url?: string
+          id?: string
+          subject_id?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "old_questions_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pre_registered_students: {
         Row: {
           created_at: string

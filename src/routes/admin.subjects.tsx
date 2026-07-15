@@ -24,7 +24,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+
+const LEVEL_OPTIONS = ["NCC Level 3", "NCC Level 4", "NCC Level 5", "HNC", "HND"] as const;
 import {
   listSubjects,
   createSubject,

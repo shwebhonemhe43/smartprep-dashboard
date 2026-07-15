@@ -230,21 +230,28 @@ function RecentActivity() {
   };
 
   return (
-    <ul className="divide-y divide-border/60">
-      {data.map((a, i) => (
-        <li key={i} className="flex items-start justify-between gap-3 py-3.5">
-          <div className="min-w-0">
-            <p className="text-sm font-medium leading-snug">{a.title}</p>
-            <p className="mt-1 text-xs text-muted-foreground">{formatRelative(a.when)}</p>
-          </div>
-          <span
-            className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-medium ${tagStyle(a.tag)}`}
-          >
-            {a.tag}
-          </span>
-        </li>
-      ))}
-    </ul>
+    <div className="-mx-2">
+      <ul className="max-h-[420px] overflow-y-auto pr-2 divide-y divide-border/60">
+        {data.map((a, i) => (
+          <li key={i} className="flex items-start justify-between gap-3 py-3.5 px-2">
+            <div className="min-w-0">
+              <p className="text-sm font-medium leading-snug">{a.title}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{formatRelative(a.when)}</p>
+            </div>
+            <span
+              className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-medium ${tagStyle(a.tag)}`}
+            >
+              {a.tag}
+            </span>
+          </li>
+        ))}
+      </ul>
+      {data.length >= 12 && (
+        <p className="mt-3 px-2 text-xs text-muted-foreground">
+          Showing the 12 most recent activities.
+        </p>
+      )}
+    </div>
   );
 }
 

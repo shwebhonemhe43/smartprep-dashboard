@@ -371,6 +371,20 @@ function CreatePlanDialog({ onCreated }: { onCreated: () => void }) {
         </div>
 
         <div className="space-y-2">
+          <Label>Subject proficiency</Label>
+          <Select value={proficiency} onValueChange={(v) => setProficiency(v as "strong" | "medium" | "weak")}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select proficiency" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="strong">Strong — mostly advanced practice & revision</SelectItem>
+              <SelectItem value="medium">Medium — balanced coverage</SelectItem>
+              <SelectItem value="weak">Weak — more foundational sessions</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
           <Label>Available study time</Label>
           <p className="text-xs text-muted-foreground">
             Morning 09:00–12:00 · Afternoon 14:00–17:00 · Evening 19:00–22:00

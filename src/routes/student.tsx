@@ -24,7 +24,7 @@ const items: NavItem[] = [
   { title: "Flashcards", url: "/student/flashcards", icon: Layers },
   { title: "Quiz", url: "/student/quiz", icon: ListChecks },
   { title: "Profile", url: "/student/profile", icon: User },
-  { title: "Resources", url: "/student/resources", icon: FolderOpen },
+  
 ];
 
 export const Route = createFileRoute("/student")({

@@ -9,6 +9,7 @@ import {
   ChevronRight,
   Clock,
   Loader2,
+  Pencil,
   Plus,
   Sparkles,
   Target,
@@ -22,21 +23,34 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
 import {
   createStudyPlan,
+  deleteStudyPlan,
   getStudyPlanById,
   listEnrolledSubjectsForPlan,
   listMyStudyPlans,
   togglePlanItem,
+  updateStudyPlan,
   type StudyPlan,
   type StudyPlanItem,
   type StudyPlanWithStats,
   type SubjectRef,
 } from "@/lib/study-plans.functions";
+
 
 export const Route = createFileRoute("/student/study-plan")({
   head: () => ({ meta: [{ title: "Study Plan — NCC SmartPrep" }] }),

@@ -60,16 +60,90 @@ export type StudyPlanItem = {
 
 export type SubjectRef = { id: string; subject_code: string; subject_name: string };
 
+export type StudyPlanWithStats = {
+  plan: StudyPlan;
+  subject: SubjectRef | null;
+  total_items: number;
+  completed_items: number;
+};
+
 export const listMyStudyPlans = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await (context.supabase as any)
+    const { data: plans, error } = await (context.supabase as any)
       .from("study_plans")
       .select("*")
       .eq("student_id", context.userId)
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
-    return (data ?? []) as StudyPlan[];
+    const planList = (plans ?? []) as StudyPlan[];
+    if (planList.length === 0) return [] as StudyPlanWithStats[];
+
+    const subjectIds = Array.from(
+      new Set(planList.map((p) => p.subject_id).filter((v): v is string => Boolean(v))),
+    );
+    const subjectMap = new Map<string, SubjectRef>();
+    if (subjectIds.length > 0) {
+      const { data: subs } = await (context.supabase as any)
+        .from("subjects")
+        .select("id, subject_code, subject_name")
+        .in("id", subjectIds);
+      for (const s of (subs ?? []) as SubjectRef[]) subjectMap.set(s.id, s);
+    }
+
+    const planIds = planList.map((p) => p.id);
+    const { data: items } = await (context.supabase as any)
+      .from("study_plan_items")
+      .select("study_plan_id, completed")
+      .in("study_plan_id", planIds);
+    const totals = new Map<string, { total: number; done: number }>();
+    for (const it of (items ?? []) as { study_plan_id: string; completed: boolean }[]) {
+      const cur = totals.get(it.study_plan_id) ?? { total: 0, done: 0 };
+      cur.total += 1;
+      if (it.completed) cur.done += 1;
+      totals.set(it.study_plan_id, cur);
+    }
+
+    return planList.map((p) => ({
+      plan: p,
+      subject: p.subject_id ? subjectMap.get(p.subject_id) ?? null : null,
+      total_items: totals.get(p.id)?.total ?? 0,
+      completed_items: totals.get(p.id)?.done ?? 0,
+    })) as StudyPlanWithStats[];
+  });
+
+export const getStudyPlanById = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ plan_id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { data: plan, error } = await (context.supabase as any)
+      .from("study_plans")
+      .select("*")
+      .eq("id", data.plan_id)
+      .eq("student_id", context.userId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!plan) return null;
+
+    const { data: items, error: iErr } = await (context.supabase as any)
+      .from("study_plan_items")
+      .select("*")
+      .eq("study_plan_id", plan.id)
+      .order("date", { ascending: true })
+      .order("start_time", { ascending: true, nullsFirst: true });
+    if (iErr) throw new Error(iErr.message);
+
+    let subject: SubjectRef | null = null;
+    if (plan.subject_id) {
+      const { data: subj } = await (context.supabase as any)
+        .from("subjects")
+        .select("id, subject_code, subject_name")
+        .eq("id", plan.subject_id)
+        .maybeSingle();
+      subject = (subj as SubjectRef | null) ?? null;
+    }
+
+    return { plan: plan as StudyPlan, items: (items ?? []) as StudyPlanItem[], subject };
   });
 
 export const togglePlanItem = createServerFn({ method: "POST" })

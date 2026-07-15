@@ -102,6 +102,26 @@ function StudentDashboard() {
         />
       </div>
 
+      {/* Donation CTA */}
+      <Card className="border-border/60 shadow-soft">
+        <CardContent className="flex flex-col items-start gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-4">
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-rose-500/10 to-rose-500/5 text-rose-500">
+              <Heart className="h-6 w-6" />
+            </span>
+            <div>
+              <h3 className="font-display text-lg font-semibold">Support Study Buddy</h3>
+              <p className="mt-1 max-w-xl text-sm text-muted-foreground">
+                Your contribution helps us keep the platform free and keep building tools that help students succeed.
+              </p>
+            </div>
+          </div>
+          <Button variant="default" size="sm" className="shrink-0">
+            Donate now
+          </Button>
+        </CardContent>
+      </Card>
+
       {/* Today's Study Plan */}
       <Card className="border-border/60 shadow-soft">
         <CardHeader className="flex flex-row items-center justify-between">

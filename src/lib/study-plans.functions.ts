@@ -105,13 +105,13 @@ export const getLatestStudyPlan = createServerFn({ method: "GET" })
 
     const { data: items, error: iErr } = await (context.supabase as any)
       .from("study_plan_items")
-      .select("*")
+      .select("*, subjects:subject_id(subject_code, subject_name)")
       .eq("study_plan_id", plan.id)
       .order("date", { ascending: true })
       .order("start_time", { ascending: true, nullsFirst: true });
     if (iErr) throw new Error(iErr.message);
 
-    return { plan: plan as StudyPlan, items: (items ?? []) as StudyPlanItem[] };
+    return { plan: plan as StudyPlan, items: (items ?? []) as (StudyPlanItem & { subjects: { subject_code: string; subject_name: string } | null })[] };
   });
 
 export const togglePlanItem = createServerFn({ method: "POST" })

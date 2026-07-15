@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import {
   createStudyPlan,
@@ -58,7 +59,7 @@ function StudyPlanPage() {
   const completed = items.filter((i) => i.completed).length;
   const progressPct = items.length ? Math.round((completed / items.length) * 100) : 0;
 
-  const grouped = useMemo(() => {
+  const groupedByDate = useMemo(() => {
     const map = new Map<string, StudyPlanItem[]>();
     for (const it of items) {
       const arr = map.get(it.date) ?? [];
@@ -66,6 +67,19 @@ function StudyPlanPage() {
       map.set(it.date, arr);
     }
     return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
+  }, [items]);
+
+  const groupedBySubject = useMemo(() => {
+    const map = new Map<string, { label: string; items: (StudyPlanItem & { subjects?: { subject_code: string; subject_name: string } | null })[] }>();
+    for (const it of items as (StudyPlanItem & { subjects?: { subject_code: string; subject_name: string } | null })[]) {
+      const subj = it.subjects;
+      const key = subj ? `${subj.subject_code}` : it.subject_id ?? "__other__";
+      const label = subj ? `${subj.subject_code} — ${subj.subject_name}` : "Other / Priority";
+      const cur = map.get(key) ?? { label, items: [] };
+      cur.items.push(it);
+      map.set(key, cur);
+    }
+    return Array.from(map.values()).sort((a, b) => a.label.localeCompare(b.label));
   }, [items]);
 
   const totalDays = plan
@@ -148,62 +162,78 @@ function StudyPlanPage() {
           </Card>
 
           <div className="space-y-4">
-            <h2 className="font-display text-xl font-semibold">Schedule</h2>
-            {grouped.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No sessions scheduled.</p>
-            ) : (
-              grouped.map(([date, dayItems]) => (
-                <Card key={date} className="border-border/60 shadow-soft">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="font-display text-base">
-                      {new Date(date).toLocaleDateString(undefined, {
-                        weekday: "long",
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {dayItems.map((it) => (
-                      <div
-                        key={it.id}
-                        className={cn(
-                          "flex items-start gap-3 rounded-lg border border-border/60 p-3 transition",
-                          it.completed && "bg-emerald-50/60 border-emerald-200 dark:bg-emerald-950/20",
-                        )}
-                      >
-                        <Checkbox
-                          checked={it.completed}
-                          onCheckedChange={(v) =>
-                            toggleMut.mutate({ item_id: it.id, completed: Boolean(v) })
-                          }
-                          className="mt-1"
-                        />
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                            {it.start_time && it.end_time && (
-                              <span className="font-mono">{it.start_time} – {it.end_time}</span>
-                            )}
-                            <span>· {it.duration_minutes} min</span>
+            <Tabs defaultValue="subject" className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="font-display text-xl font-semibold">Schedule</h2>
+                <TabsList>
+                  <TabsTrigger value="subject">By subject</TabsTrigger>
+                  <TabsTrigger value="date">By date</TabsTrigger>
+                </TabsList>
+              </div>
+
+              <TabsContent value="subject" className="space-y-4">
+                {groupedBySubject.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No sessions scheduled.</p>
+                ) : (
+                  groupedBySubject.map((g) => {
+                    const done = g.items.filter((i) => i.completed).length;
+                    const pct = Math.round((done / g.items.length) * 100);
+                    return (
+                      <Card key={g.label} className="border-border/60 shadow-soft">
+                        <CardHeader className="pb-3">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <CardTitle className="font-display text-base">{g.label}</CardTitle>
+                            <Badge variant="secondary" className="text-xs">
+                              {done}/{g.items.length} done · {pct}%
+                            </Badge>
                           </div>
-                          <p
-                            className={cn(
-                              "mt-0.5 font-medium",
-                              it.completed && "text-muted-foreground line-through",
-                            )}
-                          >
-                            {it.title}
-                          </p>
-                          {it.description && (
-                            <p className="mt-1 text-sm text-muted-foreground">{it.description}</p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              ))
-            )}
+                          <Progress value={pct} className="mt-2 h-1.5" />
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          {g.items.map((it) => (
+                            <ScheduleItem
+                              key={it.id}
+                              it={it}
+                              showDate
+                              onToggle={(v) => toggleMut.mutate({ item_id: it.id, completed: v })}
+                            />
+                          ))}
+                        </CardContent>
+                      </Card>
+                    );
+                  })
+                )}
+              </TabsContent>
+
+              <TabsContent value="date" className="space-y-4">
+                {groupedByDate.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No sessions scheduled.</p>
+                ) : (
+                  groupedByDate.map(([date, dayItems]) => (
+                    <Card key={date} className="border-border/60 shadow-soft">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="font-display text-base">
+                          {new Date(date).toLocaleDateString(undefined, {
+                            weekday: "long",
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {dayItems.map((it) => (
+                          <ScheduleItem
+                            key={it.id}
+                            it={it}
+                            onToggle={(v) => toggleMut.mutate({ item_id: it.id, completed: v })}
+                          />
+                        ))}
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
+              </TabsContent>
+            </Tabs>
           </div>
         </>
       )}
@@ -218,6 +248,48 @@ function Stat({ icon: Icon, label, value }: { icon: any; label: string; value: s
       <div>
         <p className="text-xs text-muted-foreground">{label}</p>
         <p className="font-semibold">{value}</p>
+      </div>
+    </div>
+  );
+}
+
+function ScheduleItem({
+  it,
+  onToggle,
+  showDate,
+}: {
+  it: StudyPlanItem & { subjects?: { subject_code: string; subject_name: string } | null };
+  onToggle: (v: boolean) => void;
+  showDate?: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex items-start gap-3 rounded-lg border border-border/60 p-3 transition",
+        it.completed && "bg-emerald-50/60 border-emerald-200 dark:bg-emerald-950/20",
+      )}
+    >
+      <Checkbox
+        checked={it.completed}
+        onCheckedChange={(v) => onToggle(Boolean(v))}
+        className="mt-1"
+      />
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+          {showDate && (
+            <span className="font-medium text-foreground/80">
+              {new Date(it.date).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}
+            </span>
+          )}
+          {it.start_time && it.end_time && (
+            <span className="font-mono">{it.start_time} – {it.end_time}</span>
+          )}
+          <span>· {it.duration_minutes} min</span>
+        </div>
+        <p className={cn("mt-0.5 font-medium", it.completed && "text-muted-foreground line-through")}>
+          {it.title}
+        </p>
+        {it.description && <p className="mt-1 text-sm text-muted-foreground">{it.description}</p>}
       </div>
     </div>
   );

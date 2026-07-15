@@ -2,7 +2,6 @@ import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   Users,
-  ClipboardList,
   BookMarked,
   FileText,
   FileQuestion,
@@ -21,7 +20,6 @@ const groups: NavGroup[] = [
     label: "Student Management",
     items: [
       { title: "Student Management", url: "/admin/students", icon: Users },
-      { title: "Student Records", url: "/admin/records", icon: ClipboardList },
     ],
   },
   {

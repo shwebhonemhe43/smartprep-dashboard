@@ -1,16 +1,15 @@
-import { GraduationCap } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
+import logoAsset from "@/assets/gtd-logo.png.asset.json";
 
 export function BrandLogo({ className, to = "/" }: { className?: string; to?: string }) {
   return (
-    <Link to={to} className={cn("flex items-center gap-2 group", className)}>
-      <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-primary to-primary-glow text-primary-foreground shadow-soft transition-transform group-hover:scale-105">
-        <GraduationCap className="h-5 w-5" />
-      </span>
-      <span className="font-display text-lg font-bold tracking-tight">
-        NCC <span className="text-gradient">SmartPrep</span>
-      </span>
+    <Link to={to} className={cn("inline-flex items-center group", className)}>
+      <img
+        src={logoAsset.url}
+        alt="Grab That Distinction"
+        className="h-9 w-auto rounded-md bg-white/95 p-1 shadow-sm transition-transform group-hover:scale-[1.02] dark:bg-white/95"
+      />
     </Link>
   );
 }

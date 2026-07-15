@@ -17,10 +17,26 @@ export const Route = createFileRoute("/student/subjects/")({
 
 function StudentSubjects() {
   const listFn = useServerFn(listMySubjects);
+  const enrollmentsFn = useServerFn(listMyEnrollments);
+  const enrollFn = useServerFn(enrollInSubject);
+  const qc = useQueryClient();
   const { data, isLoading } = useQuery({
     queryKey: ["my-subjects"],
     queryFn: () => listFn(),
     refetchOnWindowFocus: true,
+  });
+  const { data: enrollments } = useQuery({
+    queryKey: ["my-enrollments"],
+    queryFn: () => enrollmentsFn(),
+  });
+  const enrolledIds = new Set((enrollments ?? []).map((e) => e.subject_id));
+  const enrollMutation = useMutation({
+    mutationFn: (subject_id: string) => enrollFn({ data: { subject_id } }),
+    onSuccess: () => {
+      toast.success("Enrolled successfully");
+      qc.invalidateQueries({ queryKey: ["my-enrollments"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Failed to enroll"),
   });
 
   const program = data?.program ?? null;

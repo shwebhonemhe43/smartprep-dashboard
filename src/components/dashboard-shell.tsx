@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/sidebar";
 import { BrandLogo } from "./brand-logo";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "./theme-toggle";
 
 export type NavItem = {
   title: string;
@@ -107,6 +108,7 @@ export function DashboardShell({
               <h1 className="truncate font-display text-lg font-semibold">{title}</h1>
               {subtitle && <p className="truncate text-xs text-muted-foreground">{subtitle}</p>}
             </div>
+            <ThemeToggle />
             <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex">
               <Link to="/">View site</Link>
             </Button>

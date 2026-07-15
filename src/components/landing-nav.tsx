@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BrandLogo } from "./brand-logo";
+import { ThemeToggle } from "./theme-toggle";
 
 const links = [
   { label: "Home", href: "#home" },
@@ -28,6 +29,7 @@ export function LandingNav() {
           ))}
         </nav>
         <div className="hidden items-center gap-2 md:flex">
+          <ThemeToggle />
           <Button asChild variant="ghost">
             <Link to="/login">Login</Link>
           </Button>
@@ -35,13 +37,16 @@ export function LandingNav() {
             <Link to="/register">Get Started</Link>
           </Button>
         </div>
-        <button
-          className="grid h-10 w-10 place-items-center rounded-md md:hidden"
-          onClick={() => setOpen((s) => !s)}
-          aria-label="Toggle menu"
-        >
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+        <div className="flex items-center gap-1 md:hidden">
+          <ThemeToggle />
+          <button
+            className="grid h-10 w-10 place-items-center rounded-md"
+            onClick={() => setOpen((s) => !s)}
+            aria-label="Toggle menu"
+          >
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
       {open && (
         <div className="border-t border-border/60 bg-background md:hidden">

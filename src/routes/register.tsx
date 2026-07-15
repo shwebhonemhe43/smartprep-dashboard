@@ -33,7 +33,14 @@ export const Route = createFileRoute("/register")({
 function RegisterPage() {
   const navigate = useNavigate();
   const registerFn = useServerFn(registerStudent);
-  const [form, setForm] = useState({ name: "", email: "", password: "", confirm: "" });
+  const [form, setForm] = useState<{
+    name: string;
+    email: string;
+    password: string;
+    confirm: string;
+    program: Program;
+    level: string;
+  }>({ name: "", email: "", password: "", confirm: "", program: "NCC", level: "" });
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   const errors = {
@@ -41,9 +48,10 @@ function RegisterPage() {
     email: touched.email && !/^\S+@\S+\.\S+$/.test(form.email) ? "Enter a valid Outlook email" : "",
     password: touched.password && form.password.length < 6 ? "Min 6 characters" : "",
     confirm: touched.confirm && form.confirm !== form.password ? "Passwords don't match" : "",
+    level: touched.level && !form.level ? "Select a level" : "",
   };
 
-  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
+  const set = (k: "name" | "email" | "password" | "confirm") => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
   const blur = (k: string) => () => setTouched((t) => ({ ...t, [k]: true }));
 
@@ -54,6 +62,8 @@ function RegisterPage() {
           email: form.email.trim().toLowerCase(),
           full_name: form.name,
           password: form.password,
+          program: form.program,
+          level: form.level,
         },
       });
       const { error } = await supabase.auth.signInWithPassword({
@@ -73,7 +83,8 @@ function RegisterPage() {
     form.name.trim().length >= 2 &&
     /^\S+@\S+\.\S+$/.test(form.email) &&
     form.password.length >= 6 &&
-    form.confirm === form.password;
+    form.confirm === form.password &&
+    (PROGRAM_LEVELS[form.program] as readonly string[]).includes(form.level);
 
   return (
     <div className="bg-hero flex min-h-screen items-center justify-center px-4 py-12">

@@ -131,6 +131,7 @@ export type Database = {
       }
       student_profiles: {
         Row: {
+          approval_status: string
           auth_user_id: string
           created_at: string
           email: string
@@ -140,6 +141,7 @@ export type Database = {
           student_id: string
         }
         Insert: {
+          approval_status?: string
           auth_user_id: string
           created_at?: string
           email: string
@@ -149,6 +151,7 @@ export type Database = {
           student_id: string
         }
         Update: {
+          approval_status?: string
           auth_user_id?: string
           created_at?: string
           email?: string

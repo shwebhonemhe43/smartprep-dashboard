@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/sidebar";
 import { BrandLogo } from "./brand-logo";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "./theme-toggle";
 
 export type NavItem = {
   title: string;

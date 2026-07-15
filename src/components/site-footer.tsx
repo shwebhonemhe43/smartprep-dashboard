@@ -7,7 +7,7 @@ export function SiteFooter() {
     <footer className="border-t border-border/60 bg-muted/30">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-4 lg:px-8">
         <div className="space-y-3">
-          <BrandLogo />
+          <BrandLogo size="md" />
           <p className="text-sm text-muted-foreground">
             AI-powered study companion built for NCC Level 4 Computing students.
           </p>

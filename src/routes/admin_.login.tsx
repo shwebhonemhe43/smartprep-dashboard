@@ -63,7 +63,7 @@ function AdminLoginPage() {
     <div className="bg-hero flex min-h-screen items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="mb-6 flex justify-center">
-          <BrandLogo />
+          <BrandLogo size="lg" />
         </div>
         <Card className="border-border/60 shadow-elegant">
           <CardHeader className="space-y-1 text-center">

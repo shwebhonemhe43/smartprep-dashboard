@@ -35,6 +35,7 @@ export type StudyPlan = {
   exam_date: string;
   available_hours: Record<string, string[]>;
   priorities: string[] | null;
+  subject_proficiency: "strong" | "medium" | "weak" | null;
   generated_plan: any;
   status: string;
   created_at: string;

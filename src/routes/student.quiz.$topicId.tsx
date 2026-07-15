@@ -18,6 +18,7 @@ export const Route = createFileRoute("/student/quiz/$topicId")({
 function QuizPage() {
   const { topicId } = Route.useParams();
   const fn = useServerFn(getOrGenerateTopicQuiz);
+  const markFn = useServerFn(markTopicProgress);
   const { data, isLoading, error } = useQuery({
     queryKey: ["topic-quiz", topicId],
     queryFn: () => fn({ data: { topic_id: topicId } }),

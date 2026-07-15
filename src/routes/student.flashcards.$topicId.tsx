@@ -1,12 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft, ChevronLeft, ChevronRight, Loader2, Sparkles, RotateCw } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getOrGenerateTopicFlashcards } from "@/lib/topic-flashcards.functions";
+import { markTopicProgress } from "@/lib/topic-progress.functions";
 
 export const Route = createFileRoute("/student/flashcards/$topicId")({
   head: () => ({ meta: [{ title: "Flashcards — NCC SmartPrep" }] }),
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/student/flashcards/$topicId")({
 function FlashcardsPage() {
   const { topicId } = Route.useParams();
   const fn = useServerFn(getOrGenerateTopicFlashcards);
+  const markFn = useServerFn(markTopicProgress);
   const { data, isLoading, error } = useQuery({
     queryKey: ["topic-flashcards", topicId],
     queryFn: () => fn({ data: { topic_id: topicId } }),
@@ -29,6 +31,12 @@ function FlashcardsPage() {
   const cards = data?.flashcards ?? [];
   const total = cards.length;
   const current = cards[index];
+
+  useEffect(() => {
+    if (total > 0 && index >= total - 1) {
+      markFn({ data: { topic_id: topicId, kind: "flashcards" } }).catch(() => {});
+    }
+  }, [index, total, topicId, markFn]);
 
   const go = (delta: number) => {
     setFlipped(false);

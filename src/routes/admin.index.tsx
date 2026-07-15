@@ -130,26 +130,9 @@ function AdminDashboard() {
             </p>
           </CardHeader>
           <CardContent>
-            <ul className="divide-y divide-border/60">
-              {activity.map((a, i) => (
-                <li key={i} className="flex items-start justify-between gap-3 py-3.5">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium leading-snug">{a.title}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">{a.when}</p>
-                  </div>
-                  <span
-                    className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-medium ${
-                      a.tag === "Students"
-                        ? "bg-primary/10 text-primary"
-                        : "bg-accent text-accent-foreground"
-                    }`}
-                  >
-                    {a.tag}
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <RecentActivity />
           </CardContent>
+
         </Card>
       </div>
     </div>

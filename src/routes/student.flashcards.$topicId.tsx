@@ -111,7 +111,23 @@ function FlashcardsPage() {
                 </span>
               )}
             </div>
-            <h1 className="font-display text-3xl font-extrabold tracking-tight">{data.topic_name}</h1>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <h1 className="font-display text-3xl font-extrabold tracking-tight">{data.topic_name}</h1>
+              <Button
+                onClick={() => saveMut.mutate()}
+                disabled={saveMut.isPending || savedQ.data?.saved}
+                variant={savedQ.data?.saved ? "secondary" : "default"}
+                size="sm"
+              >
+                {savedQ.data?.saved ? (
+                  <><BookmarkCheck className="mr-2 h-4 w-4" /> Saved ✓</>
+                ) : saveMut.isPending ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving…</>
+                ) : (
+                  <><Bookmark className="mr-2 h-4 w-4" /> Save Flashcards</>
+                )}
+              </Button>
+            </div>
           </div>
 
           <div className="flex items-center justify-between text-sm text-muted-foreground">

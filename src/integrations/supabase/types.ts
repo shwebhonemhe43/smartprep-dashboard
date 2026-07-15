@@ -252,6 +252,53 @@ export type Database = {
           },
         ]
       }
+      student_topic_progress: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          flashcards_completed: boolean
+          id: string
+          notes_completed: boolean
+          progress_percentage: number
+          quiz_completed: boolean
+          student_id: string
+          topic_id: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          flashcards_completed?: boolean
+          id?: string
+          notes_completed?: boolean
+          progress_percentage?: number
+          quiz_completed?: boolean
+          student_id: string
+          topic_id: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          flashcards_completed?: boolean
+          id?: string
+          notes_completed?: boolean
+          progress_percentage?: number
+          quiz_completed?: boolean
+          student_id?: string
+          topic_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_topic_progress_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "lecture_files"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_topic_quizzes: {
         Row: {
           created_at: string

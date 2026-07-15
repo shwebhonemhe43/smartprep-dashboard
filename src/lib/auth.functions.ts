@@ -7,10 +7,6 @@ const registerSchema = z.object({
   password: z.string().min(6).max(200),
 });
 
-function normalize(s: string) {
-  return s.trim().toLowerCase().replace(/\s+/g, " ");
-}
-
 export const registerStudent = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => registerSchema.parse(input))
   .handler(async ({ data }) => {
@@ -24,16 +20,18 @@ export const registerStudent = createServerFn({ method: "POST" })
 
     if (lookupErr) throw new Error(lookupErr.message);
 
-    if (!pre || normalize(pre.full_name) !== normalize(data.full_name)) {
-      throw new Error("Your account is not approved by administrator.");
+    if (!pre) {
+      throw new Error(
+        "This email is not on the approved student list. Please contact your administrator.",
+      );
     }
 
     if (pre.program !== "NCC") {
       throw new Error("Only NCC students can register.");
     }
 
-    if (pre.status !== "pending") {
-      throw new Error("This student has already registered.");
+    if (pre.status === "registered") {
+      throw new Error("This student has already registered. Please log in instead.");
     }
 
     const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({

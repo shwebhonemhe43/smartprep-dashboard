@@ -175,6 +175,15 @@ function Students() {
                           </Badge>
                         )}
                       </TableCell>
+                      <TableCell>
+                        {r.register_status === "admin-register" ? (
+                          <Badge className="bg-sky-500/15 text-sky-700 hover:bg-sky-500/20 dark:text-sky-400">
+                            Admin-Register
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary">Pre-Register</Badge>
+                        )}
+                      </TableCell>
                       <TableCell className="text-right">
                         <Button
                           variant="ghost"

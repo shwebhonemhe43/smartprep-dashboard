@@ -17,7 +17,7 @@ export const listPreRegisteredStudents = createServerFn({ method: "GET" }).handl
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin
       .from("pre_registered_students")
-      .select("id, student_id, full_name, phone_number, program, email, status, created_at")
+      .select("id, student_id, full_name, phone_number, program, email, status, register_status, created_at")
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return data ?? [];

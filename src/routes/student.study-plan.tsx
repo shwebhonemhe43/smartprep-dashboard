@@ -499,11 +499,21 @@ function Stat({ icon: Icon, label, value }: { icon: any; label: string; value: s
   );
 }
 
-function ScheduleItem({ it, onToggle }: { it: StudyPlanItem; onToggle: (v: boolean) => void }) {
+function ScheduleItem({
+  it,
+  onToggle,
+  onTestCompleted,
+}: {
+  it: StudyPlanItem;
+  onToggle: (v: boolean) => void;
+  onTestCompleted: () => void;
+}) {
+  const [notesOpen, setNotesOpen] = useState(false);
+  const [testOpen, setTestOpen] = useState(false);
   return (
     <div
       className={cn(
-        "flex items-start gap-3 rounded-lg border border-border/60 p-3 transition",
+        "flex flex-col gap-3 rounded-lg border border-border/60 p-3 transition sm:flex-row sm:items-start",
         it.completed && "bg-emerald-50/60 border-emerald-200 dark:bg-emerald-950/20",
       )}
     >
@@ -523,6 +533,11 @@ function ScheduleItem({ it, onToggle }: { it: StudyPlanItem; onToggle: (v: boole
             </span>
           )}
           <span>· {it.duration_minutes} min</span>
+          {it.completed && (
+            <Badge variant="secondary" className="gap-1 bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200">
+              <CheckCircle2 className="h-3 w-3" /> Completed
+            </Badge>
+          )}
         </div>
         <p
           className={cn("mt-0.5 font-medium", it.completed && "text-muted-foreground line-through")}
@@ -530,8 +545,250 @@ function ScheduleItem({ it, onToggle }: { it: StudyPlanItem; onToggle: (v: boole
           {it.title}
         </p>
         {it.description && <p className="mt-1 text-sm text-muted-foreground">{it.description}</p>}
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Button size="sm" variant="outline" className="gap-2" onClick={() => setNotesOpen(true)}>
+            <FileText className="h-4 w-4" /> Notes
+          </Button>
+          <Button size="sm" variant="default" className="gap-2" onClick={() => setTestOpen(true)}>
+            <ClipboardCheck className="h-4 w-4" /> End Test
+          </Button>
+        </div>
       </div>
+
+      <Dialog open={notesOpen} onOpenChange={setNotesOpen}>
+        {notesOpen && <SessionNotesDialog itemId={it.id} />}
+      </Dialog>
+
+      <Dialog open={testOpen} onOpenChange={setTestOpen}>
+        {testOpen && (
+          <SessionTestDialog
+            itemId={it.id}
+            onCompleted={() => {
+              onTestCompleted();
+            }}
+          />
+        )}
+      </Dialog>
     </div>
+  );
+}
+
+function SessionNotesDialog({ itemId }: { itemId: string }) {
+  const fn = useServerFn(getOrGenerateSessionNotes);
+  const { data, isLoading, error } = useQuery<SessionNotes>({
+    queryKey: ["session-notes", itemId],
+    queryFn: () => fn({ data: { study_plan_item_id: itemId } }),
+    staleTime: Infinity,
+    retry: false,
+  });
+
+  return (
+    <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
+      <DialogHeader>
+        <DialogTitle className="font-display text-xl flex items-center gap-2">
+          <Sparkles className="h-5 w-5 text-primary" />
+          {data?.session_title ?? "Session Notes"}
+        </DialogTitle>
+      </DialogHeader>
+      {isLoading ? (
+        <div className="flex flex-col items-center gap-3 p-8 text-center text-muted-foreground">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm">Generating your notes for this session…</p>
+        </div>
+      ) : error ? (
+        <p className="p-4 text-sm text-destructive">{(error as Error).message}</p>
+      ) : data ? (
+        <article className="max-w-none space-y-3 text-[15px] leading-relaxed [&_h1]:font-display [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:font-display [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:mt-6 [&_h3]:font-semibold [&_h3]:mt-4 [&_p]:my-2 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5">
+          <ReactMarkdown>{data.notes_content}</ReactMarkdown>
+          <p className="pt-4 text-xs text-muted-foreground">
+            Saved {new Date(data.updated_at ?? data.created_at).toLocaleString()}
+          </p>
+        </article>
+      ) : null}
+    </DialogContent>
+  );
+}
+
+function SessionTestDialog({
+  itemId,
+  onCompleted,
+}: {
+  itemId: string;
+  onCompleted: () => void;
+}) {
+  const qc = useQueryClient();
+  const getFn = useServerFn(getOrGenerateSessionTest);
+  const submitFn = useServerFn(submitSessionTest);
+  const { data, isLoading, error, refetch } = useQuery<TestResult>({
+    queryKey: ["session-test", itemId],
+    queryFn: () => getFn({ data: { study_plan_item_id: itemId } }),
+    staleTime: Infinity,
+    retry: false,
+  });
+
+  const [mcqAns, setMcqAns] = useState<number[]>([]);
+  const [saqAns, setSaqAns] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!data) return;
+    if (data.answers) {
+      setMcqAns(data.answers.mcq ?? []);
+      setSaqAns(data.answers.short_answer ?? []);
+    } else {
+      setMcqAns(new Array(data.questions.mcq.length).fill(-1));
+      setSaqAns(new Array(data.questions.short_answer.length).fill(""));
+    }
+  }, [data]);
+
+  const submitMut = useMutation({
+    mutationFn: () =>
+      submitFn({
+        data: {
+          study_plan_item_id: itemId,
+          mcq_answers: mcqAns.map((n) => (n < 0 ? 0 : n)),
+          short_answers: saqAns,
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Test submitted!");
+      qc.invalidateQueries({ queryKey: ["session-test", itemId] });
+      refetch();
+      onCompleted();
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Failed to submit"),
+  });
+
+  const submitted = !!data?.completed_at;
+  const allMcqAnswered = data ? mcqAns.length === data.questions.mcq.length && mcqAns.every((n) => n >= 0) : false;
+
+  return (
+    <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
+      <DialogHeader>
+        <DialogTitle className="font-display text-xl flex items-center gap-2">
+          <ClipboardCheck className="h-5 w-5 text-primary" /> End Test
+        </DialogTitle>
+      </DialogHeader>
+
+      {isLoading ? (
+        <div className="flex flex-col items-center gap-3 p-8 text-center text-muted-foreground">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm">Preparing your test from the saved notes…</p>
+        </div>
+      ) : error ? (
+        <p className="p-4 text-sm text-destructive">{(error as Error).message}</p>
+      ) : data ? (
+        <div className="space-y-6 py-2">
+          {submitted && (
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 p-4 dark:bg-emerald-950/20">
+              <p className="font-display text-lg font-semibold">Score: {data.score}%</p>
+              <p className="mt-1 text-sm text-muted-foreground">{data.feedback}</p>
+            </div>
+          )}
+
+          {data.questions.mcq.length > 0 && (
+            <section className="space-y-4">
+              <h3 className="font-display text-lg font-semibold">Section 1 · Multiple Choice</h3>
+              {data.questions.mcq.map((m, qi) => {
+                const chosen = mcqAns[qi];
+                const isCorrect = submitted && chosen === m.correct_index;
+                return (
+                  <div key={qi} className="rounded-lg border border-border/60 p-3">
+                    <p className="font-medium">
+                      {qi + 1}. {m.question}
+                    </p>
+                    <div className="mt-2 space-y-2">
+                      {m.options.map((opt, oi) => {
+                        const selected = chosen === oi;
+                        const correct = submitted && oi === m.correct_index;
+                        const wrongPick = submitted && selected && !isCorrect;
+                        return (
+                          <label
+                            key={oi}
+                            className={cn(
+                              "flex cursor-pointer items-center gap-2 rounded-md border border-border/50 p-2 text-sm transition",
+                              selected && !submitted && "border-primary bg-primary/5",
+                              correct && "border-emerald-400 bg-emerald-50 dark:bg-emerald-950/30",
+                              wrongPick && "border-destructive bg-destructive/5",
+                            )}
+                          >
+                            <input
+                              type="radio"
+                              name={`mcq-${qi}`}
+                              disabled={submitted}
+                              checked={selected}
+                              onChange={() => {
+                                const next = [...mcqAns];
+                                next[qi] = oi;
+                                setMcqAns(next);
+                              }}
+                            />
+                            <span>{opt}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                    {submitted && (
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        <span className="font-medium">Explanation:</span> {m.explanation}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </section>
+          )}
+
+          {data.questions.short_answer.length > 0 && (
+            <section className="space-y-4">
+              <h3 className="font-display text-lg font-semibold">Section 2 · Short Answer</h3>
+              {data.questions.short_answer.map((s, i) => {
+                const ev = data.short_answer_evals?.[i];
+                return (
+                  <div key={i} className="rounded-lg border border-border/60 p-3">
+                    <p className="font-medium">
+                      {i + 1}. {s.question}
+                    </p>
+                    <Textarea
+                      className="mt-2"
+                      rows={3}
+                      disabled={submitted}
+                      value={saqAns[i] ?? ""}
+                      onChange={(e) => {
+                        const next = [...saqAns];
+                        next[i] = e.target.value;
+                        setSaqAns(next);
+                      }}
+                    />
+                    {submitted && ev && (
+                      <div className="mt-2 rounded-md bg-muted/50 p-2 text-xs">
+                        <p className="font-medium">Score: {ev.score}%</p>
+                        <p className="mt-1 text-muted-foreground">{ev.feedback}</p>
+                        <p className="mt-2 text-muted-foreground">
+                          <span className="font-medium text-foreground">Expected:</span> {s.expected_answer}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </section>
+          )}
+
+          {!submitted && (
+            <DialogFooter>
+              <Button
+                onClick={() => submitMut.mutate()}
+                disabled={submitMut.isPending || !allMcqAnswered}
+                className="gap-2"
+              >
+                {submitMut.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                Submit Test
+              </Button>
+            </DialogFooter>
+          )}
+        </div>
+      ) : null}
+    </DialogContent>
   );
 }
 

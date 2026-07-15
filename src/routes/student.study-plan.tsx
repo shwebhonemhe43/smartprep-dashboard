@@ -2,7 +2,18 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
-import { BookOpen, CalendarDays, Clock, Loader2, Plus, Sparkles, Target, Trash2 } from "lucide-react";
+import {
+  ArrowLeft,
+  BookOpen,
+  CalendarDays,
+  ChevronRight,
+  Clock,
+  Loader2,
+  Plus,
+  Sparkles,
+  Target,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,10 +28,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import {
   createStudyPlan,
-  getLatestStudyPlan,
+  getStudyPlanById,
   listEnrolledSubjectsForPlan,
+  listMyStudyPlans,
   togglePlanItem,
+  type StudyPlan,
   type StudyPlanItem,
+  type StudyPlanWithStats,
+  type SubjectRef,
 } from "@/lib/study-plans.functions";
 
 export const Route = createFileRoute("/student/study-plan")({
@@ -39,25 +54,177 @@ const WEEKDAYS = [
 ] as const;
 const SLOTS = ["morning", "afternoon", "evening"] as const;
 
+function daysUntil(dateStr: string) {
+  return Math.max(
+    0,
+    Math.ceil(
+      (new Date(dateStr).getTime() - new Date(new Date().toDateString()).getTime()) /
+        (1000 * 60 * 60 * 24),
+    ),
+  );
+}
+
 function StudyPlanPage() {
   const qc = useQueryClient();
-  const latestFn = useServerFn(getLatestStudyPlan);
+  const listFn = useServerFn(listMyStudyPlans);
+  const { data: plans, isLoading } = useQuery({
+    queryKey: ["my-study-plans"],
+    queryFn: () => listFn(),
+  });
+
+  const [open, setOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  if (selectedId) {
+    return (
+      <StudyPlanDetail
+        planId={selectedId}
+        onBack={() => setSelectedId(null)}
+        onChanged={() => qc.invalidateQueries({ queryKey: ["my-study-plans"] })}
+      />
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="font-display text-3xl font-extrabold tracking-tight">My Study Plans</h1>
+          <p className="text-sm text-muted-foreground">
+            All your AI-generated study plans, latest first.
+          </p>
+        </div>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button size="lg" className="gap-2">
+              <Plus className="h-4 w-4" /> Create New Study Plan
+            </Button>
+          </DialogTrigger>
+          <CreatePlanDialog
+            onCreated={() => {
+              setOpen(false);
+              qc.invalidateQueries({ queryKey: ["my-study-plans"] });
+            }}
+          />
+        </Dialog>
+      </div>
+
+      {isLoading ? (
+        <Card className="border-border/60 shadow-soft">
+          <CardContent className="flex items-center justify-center p-12">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </CardContent>
+        </Card>
+      ) : !plans || plans.length === 0 ? (
+        <Card className="border-border/60 shadow-soft">
+          <CardContent className="flex flex-col items-center gap-3 p-12 text-center text-muted-foreground">
+            <Sparkles className="h-10 w-10 text-primary/60" />
+            <p className="font-medium text-foreground">No study plans yet</p>
+            <p className="text-sm">
+              Click "Create New Study Plan" to generate your first personalized schedule.
+            </p>
+            <Button className="mt-2 gap-2" onClick={() => setOpen(true)}>
+              <Plus className="h-4 w-4" /> Create New Study Plan
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {plans.map((p) => (
+            <PlanCard key={p.plan.id} entry={p} onOpen={() => setSelectedId(p.plan.id)} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PlanCard({ entry, onOpen }: { entry: StudyPlanWithStats; onOpen: () => void }) {
+  const { plan, subject, total_items, completed_items } = entry;
+  const pct = total_items ? Math.round((completed_items / total_items) * 100) : 0;
+  return (
+    <Card
+      role="button"
+      tabIndex={0}
+      onClick={onOpen}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onOpen();
+        }
+      }}
+      className="cursor-pointer border-border/60 shadow-soft transition hover:border-primary/40 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+    >
+      <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-1">
+          <CardTitle className="flex items-center gap-2 font-display text-lg">
+            <Sparkles className="h-5 w-5 text-primary" />
+            {subject ? `${subject.subject_name} (${subject.subject_code})` : "Study Plan"}
+          </CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Created {new Date(plan.created_at).toLocaleDateString()}
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant={plan.plan_type === "topic" ? "secondary" : "default"} className="w-fit capitalize">
+            {plan.plan_type} based
+          </Badge>
+          {plan.subject_proficiency && (
+            <Badge variant="outline" className="w-fit capitalize">
+              {plan.subject_proficiency} proficiency
+            </Badge>
+          )}
+          <ChevronRight className="hidden h-5 w-5 text-muted-foreground sm:block" />
+        </div>
+      </CardHeader>
+      <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <Stat icon={BookOpen} label="Subject" value={subject?.subject_code ?? "—"} />
+        <Stat icon={CalendarDays} label="Exam date" value={new Date(plan.exam_date).toLocaleDateString()} />
+        <Stat icon={Clock} label="Remaining days" value={`${daysUntil(plan.exam_date)}`} />
+        <Stat icon={Target} label="Sessions" value={`${total_items}`} />
+        <div>
+          <div className="mb-1 flex items-center justify-between text-xs">
+            <span className="text-muted-foreground">Progress</span>
+            <span className="font-medium">{pct}%</span>
+          </div>
+          <Progress value={pct} />
+          <p className="mt-1 text-xs text-muted-foreground">
+            {completed_items} of {total_items} done
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function StudyPlanDetail({
+  planId,
+  onBack,
+  onChanged,
+}: {
+  planId: string;
+  onBack: () => void;
+  onChanged: () => void;
+}) {
+  const qc = useQueryClient();
+  const getFn = useServerFn(getStudyPlanById);
   const toggleFn = useServerFn(togglePlanItem);
   const { data, isLoading } = useQuery({
-    queryKey: ["latest-study-plan"],
-    queryFn: () => latestFn(),
+    queryKey: ["study-plan", planId],
+    queryFn: () => getFn({ data: { plan_id: planId } }),
   });
 
   const toggleMut = useMutation({
     mutationFn: (vars: { item_id: string; completed: boolean }) => toggleFn({ data: vars }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["latest-study-plan"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["study-plan", planId] });
+      onChanged();
+    },
   });
 
-  const [open, setOpen] = useState(false);
-
   const items = data?.items ?? [];
-  const plan = data?.plan;
-  const subject = data?.subject ?? null;
+  const plan = data?.plan as StudyPlan | undefined;
+  const subject = (data?.subject ?? null) as SubjectRef | null;
   const completed = items.filter((i) => i.completed).length;
   const progressPct = items.length ? Math.round((completed / items.length) * 100) : 0;
 
@@ -71,52 +238,18 @@ function StudyPlanPage() {
     return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
   }, [items]);
 
-  const remainingDays = plan
-    ? Math.max(
-        0,
-        Math.ceil(
-          (new Date(plan.exam_date).getTime() - new Date(new Date().toDateString()).getTime()) /
-            (1000 * 60 * 60 * 24),
-        ),
-      )
-    : 0;
-
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="font-display text-3xl font-extrabold tracking-tight">Study Plan</h1>
-          <p className="text-sm text-muted-foreground">
-            AI-generated schedule for one of your enrolled subjects.
-          </p>
-        </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button size="lg" className="gap-2">
-              <Plus className="h-4 w-4" /> Create New Study Plan
-            </Button>
-          </DialogTrigger>
-          <CreatePlanDialog
-            onCreated={() => {
-              setOpen(false);
-              qc.invalidateQueries({ queryKey: ["latest-study-plan"] });
-            }}
-          />
-        </Dialog>
+      <div>
+        <Button variant="ghost" size="sm" onClick={onBack} className="gap-2">
+          <ArrowLeft className="h-4 w-4" /> Back to My Study Plans
+        </Button>
       </div>
 
-      {isLoading ? (
+      {isLoading || !plan ? (
         <Card className="border-border/60 shadow-soft">
           <CardContent className="flex items-center justify-center p-12">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          </CardContent>
-        </Card>
-      ) : !plan ? (
-        <Card className="border-border/60 shadow-soft">
-          <CardContent className="flex flex-col items-center gap-3 p-12 text-center text-muted-foreground">
-            <Sparkles className="h-10 w-10 text-primary/60" />
-            <p className="font-medium text-foreground">No study plan yet</p>
-            <p className="text-sm">Click "Create New Study Plan" to generate your first personalized schedule.</p>
           </CardContent>
         </Card>
       ) : (
@@ -126,14 +259,8 @@ function StudyPlanPage() {
               <div className="space-y-1">
                 <CardTitle className="flex items-center gap-2 font-display text-xl">
                   <Sparkles className="h-5 w-5 text-primary" />
-                  Latest Study Plan
+                  {subject ? `${subject.subject_name} (${subject.subject_code})` : "Study Plan"}
                 </CardTitle>
-                {subject ? (
-                  <p className="text-sm">
-                    <span className="font-medium">Subject:</span>{" "}
-                    {subject.subject_name} ({subject.subject_code})
-                  </p>
-                ) : null}
                 <p className="text-xs text-muted-foreground">
                   Created {new Date(plan.created_at).toLocaleDateString()}
                 </p>
@@ -152,7 +279,7 @@ function StudyPlanPage() {
             <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
               <Stat icon={BookOpen} label="Subject" value={subject?.subject_code ?? "—"} />
               <Stat icon={CalendarDays} label="Exam date" value={new Date(plan.exam_date).toLocaleDateString()} />
-              <Stat icon={Clock} label="Remaining days" value={`${remainingDays}`} />
+              <Stat icon={Clock} label="Remaining days" value={`${daysUntil(plan.exam_date)}`} />
               <Stat icon={Target} label="Sessions" value={`${items.length}`} />
               <div>
                 <div className="mb-1 flex items-center justify-between text-xs">
@@ -160,7 +287,9 @@ function StudyPlanPage() {
                   <span className="font-medium">{progressPct}%</span>
                 </div>
                 <Progress value={progressPct} />
-                <p className="mt-1 text-xs text-muted-foreground">{completed} of {items.length} done</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {completed} of {items.length} done
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -229,8 +358,13 @@ function ScheduleItem({
       <Checkbox checked={it.completed} onCheckedChange={(v) => onToggle(Boolean(v))} className="mt-1" />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+          <span>
+            {new Date(it.date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+          </span>
           {it.start_time && it.end_time && (
-            <span className="font-mono">{it.start_time} – {it.end_time}</span>
+            <span className="font-mono">
+              · {it.start_time} – {it.end_time}
+            </span>
           )}
           <span>· {it.duration_minutes} min</span>
         </div>

@@ -6,11 +6,19 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BrandLogo } from "@/components/brand-logo";
-import { User, Mail, Lock, Loader2 } from "lucide-react";
+import { User, Mail, Lock, Loader2, GraduationCap, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { registerStudent } from "@/lib/auth.functions";
 import { supabase } from "@/integrations/supabase/client";
+
+const PROGRAM_LEVELS = {
+  NCC: ["NCC Level 3", "NCC Level 4", "NCC Level 5"],
+  HNC: ["Level 4"],
+  HND: ["Level 5"],
+} as const;
+type Program = keyof typeof PROGRAM_LEVELS;
 
 export const Route = createFileRoute("/register")({
   head: () => ({
@@ -25,7 +33,14 @@ export const Route = createFileRoute("/register")({
 function RegisterPage() {
   const navigate = useNavigate();
   const registerFn = useServerFn(registerStudent);
-  const [form, setForm] = useState({ name: "", email: "", password: "", confirm: "" });
+  const [form, setForm] = useState<{
+    name: string;
+    email: string;
+    password: string;
+    confirm: string;
+    program: Program;
+    level: string;
+  }>({ name: "", email: "", password: "", confirm: "", program: "NCC", level: "" });
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   const errors = {
@@ -33,9 +48,10 @@ function RegisterPage() {
     email: touched.email && !/^\S+@\S+\.\S+$/.test(form.email) ? "Enter a valid Outlook email" : "",
     password: touched.password && form.password.length < 6 ? "Min 6 characters" : "",
     confirm: touched.confirm && form.confirm !== form.password ? "Passwords don't match" : "",
+    level: touched.level && !form.level ? "Select a level" : "",
   };
 
-  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
+  const set = (k: "name" | "email" | "password" | "confirm") => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
   const blur = (k: string) => () => setTouched((t) => ({ ...t, [k]: true }));
 
@@ -46,6 +62,8 @@ function RegisterPage() {
           email: form.email.trim().toLowerCase(),
           full_name: form.name,
           password: form.password,
+          program: form.program,
+          level: form.level,
         },
       });
       const { error } = await supabase.auth.signInWithPassword({
@@ -65,7 +83,8 @@ function RegisterPage() {
     form.name.trim().length >= 2 &&
     /^\S+@\S+\.\S+$/.test(form.email) &&
     form.password.length >= 6 &&
-    form.confirm === form.password;
+    form.confirm === form.password &&
+    (PROGRAM_LEVELS[form.program] as readonly string[]).includes(form.level);
 
   return (
     <div className="bg-hero flex min-h-screen items-center justify-center px-4 py-12">
@@ -83,7 +102,7 @@ function RegisterPage() {
               className="space-y-4"
               onSubmit={(e) => {
                 e.preventDefault();
-                setTouched({ name: true, email: true, password: true, confirm: true });
+                setTouched({ name: true, email: true, password: true, confirm: true, level: true });
                 if (canSubmit && !mutation.isPending) mutation.mutate();
               }}
             >
@@ -102,6 +121,50 @@ function RegisterPage() {
                   <Input id="name" className="pl-9" placeholder="Jane Doe" value={form.name} onChange={set("name")} onBlur={blur("name")} />
                 </div>
                 {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="program">Program</Label>
+                  <Select
+                    value={form.program}
+                    onValueChange={(v: Program) =>
+                      setForm((f) => ({ ...f, program: v, level: "" }))
+                    }
+                  >
+                    <SelectTrigger id="program">
+                      <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                      <SelectValue placeholder="Program" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="NCC">NCC</SelectItem>
+                      <SelectItem value="HNC">HNC</SelectItem>
+                      <SelectItem value="HND">HND</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="level">Level</Label>
+                  <Select
+                    value={form.level}
+                    onValueChange={(v) => {
+                      setForm((f) => ({ ...f, level: v }));
+                      setTouched((t) => ({ ...t, level: true }));
+                    }}
+                  >
+                    <SelectTrigger id="level">
+                      <BookOpen className="h-4 w-4 text-muted-foreground" />
+                      <SelectValue placeholder="Select level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PROGRAM_LEVELS[form.program].map((lvl) => (
+                        <SelectItem key={lvl} value={lvl}>
+                          {lvl}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.level && <p className="text-xs text-destructive">{errors.level}</p>}
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>

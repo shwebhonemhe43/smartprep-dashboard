@@ -229,10 +229,10 @@ Rules:
 - All sessions belong to the single provided subject.
 - For topic plans: distribute the provided topics across sessions, favoring lower progress_percentage.
 - For priority plans: use the provided priority titles for session titles; topic_id must be null.
-- Adjust depth and pacing based on proficiency:
-  * "weak": schedule more foundational sessions, revisit basics, allocate more total time to core topics, add extra practice.
-  * "medium": balanced coverage with moderate revision.
-  * "strong": focus mostly on advanced practice, mock questions and revision; fewer basic sessions.
+- Adjust total time allocation and session depth based on subject_proficiency (the student's self-rated confidence in this subject):
+  * "weak": HIGHEST time allocation. Use as many available_slots as possible, prefer longer sessions, and schedule this subject earlier in the timeline. Emphasize foundational learning, detailed explanations, worked examples, then revision and practice.
+  * "medium": NORMAL allocation. Balanced mix of learning, revision, and practice.
+  * "strong": LOWEST time allocation. Use fewer available_slots (leave some empty for rest), keep sessions shorter, and focus on advanced practice, mock questions, and revision. Skip basic explanations.
 - Reserve the final 1-2 days before the exam for revision.
 - Do not create more items than available_slots; leaving slots empty for rest is fine.
 - Output STRICT JSON only.`;

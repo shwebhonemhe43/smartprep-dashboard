@@ -12,6 +12,7 @@ const PROGRAM_OPTIONS = [
 const registerSchema = z.object({
   email: z.string().trim().toLowerCase().email(),
   full_name: z.string().trim().min(1).max(200),
+  student_id: z.string().trim().toUpperCase().regex(/^\d{4}D\d{4}$/, "Student ID must match YYYYDXXXX"),
   password: z.string().min(6).max(200),
   program: z.enum(PROGRAM_OPTIONS),
 });
@@ -34,13 +35,14 @@ export const registerStudent = createServerFn({ method: "POST" })
 
     const full_name = data.full_name;
     const program = data.program;
+    const student_id = data.student_id;
 
     // Create the auth user.
     const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({
       email: data.email,
       password: data.password,
       email_confirm: true,
-      user_metadata: { full_name, program },
+      user_metadata: { full_name, program, student_id },
     });
 
     if (createErr || !created?.user) {
@@ -53,6 +55,7 @@ export const registerStudent = createServerFn({ method: "POST" })
       full_name,
       email: data.email,
       program,
+      student_id,
     });
 
     if (profileErr) {
@@ -69,6 +72,7 @@ export const registerStudent = createServerFn({ method: "POST" })
           register_status: "self-register",
           full_name,
           program,
+          student_id,
         })
         .eq("id", pre.id);
     } else {
@@ -77,6 +81,7 @@ export const registerStudent = createServerFn({ method: "POST" })
         email: data.email,
         phone_number: "",
         program,
+        student_id,
         status: "registered",
         register_status: "self-register",
       });

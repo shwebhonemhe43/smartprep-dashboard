@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BrandLogo } from "@/components/brand-logo";
-import { User, Mail, Lock, Loader2, GraduationCap } from "lucide-react";
+import { User, Mail, Lock, Loader2, GraduationCap, IdCard } from "lucide-react";
 import { toast } from "sonner";
 import { registerStudent } from "@/lib/auth.functions";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,15 +37,20 @@ function RegisterPage() {
   const registerFn = useServerFn(registerStudent);
   const [form, setForm] = useState<{
     name: string;
+    student_id: string;
     email: string;
     password: string;
     confirm: string;
     program: ProgramOption | "";
-  }>({ name: "", email: "", password: "", confirm: "", program: "" });
+  }>({ name: "", student_id: "", email: "", password: "", confirm: "", program: "" });
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   const errors = {
     name: touched.name && form.name.trim().length < 2 ? "Enter your full name" : "",
+    student_id:
+      touched.student_id && !/^\d{4}D\d{4}$/.test(form.student_id.trim().toUpperCase())
+        ? "Format: YYYYDXXXX (e.g. 2024D0001)"
+        : "",
     email: touched.email && !/^\S+@\S+\.\S+$/.test(form.email) ? "Enter a valid Outlook email" : "",
     password: touched.password && form.password.length < 6 ? "Min 6 characters" : "",
     confirm: touched.confirm && form.confirm !== form.password ? "Passwords don't match" : "",
@@ -53,7 +58,7 @@ function RegisterPage() {
   };
 
   const set =
-    (k: "name" | "email" | "password" | "confirm") =>
+    (k: "name" | "student_id" | "email" | "password" | "confirm") =>
     (e: React.ChangeEvent<HTMLInputElement>) =>
       setForm((f) => ({ ...f, [k]: e.target.value }));
   const blur = (k: string) => () => setTouched((t) => ({ ...t, [k]: true }));
@@ -64,6 +69,7 @@ function RegisterPage() {
         data: {
           email: form.email.trim().toLowerCase(),
           full_name: form.name,
+          student_id: form.student_id.trim().toUpperCase(),
           password: form.password,
           program: form.program as ProgramOption,
         },
@@ -83,6 +89,7 @@ function RegisterPage() {
 
   const canSubmit =
     form.name.trim().length >= 2 &&
+    /^\d{4}D\d{4}$/.test(form.student_id.trim().toUpperCase()) &&
     /^\S+@\S+\.\S+$/.test(form.email) &&
     form.password.length >= 6 &&
     form.confirm === form.password &&
@@ -106,6 +113,7 @@ function RegisterPage() {
                 e.preventDefault();
                 setTouched({
                   name: true,
+                  student_id: true,
                   email: true,
                   password: true,
                   confirm: true,
@@ -114,6 +122,29 @@ function RegisterPage() {
                 if (canSubmit && !mutation.isPending) mutation.mutate();
               }}
             >
+              <div className="space-y-2">
+                <Label htmlFor="name">Full Name</Label>
+                <div className="relative">
+                  <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input id="name" className="pl-9" placeholder="Jane Doe" value={form.name} onChange={set("name")} onBlur={blur("name")} />
+                </div>
+                {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="student_id">Student ID</Label>
+                <div className="relative">
+                  <IdCard className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="student_id"
+                    className="pl-9 uppercase"
+                    placeholder="2024D0001"
+                    value={form.student_id}
+                    onChange={set("student_id")}
+                    onBlur={blur("student_id")}
+                  />
+                </div>
+                {errors.student_id && <p className="text-xs text-destructive">{errors.student_id}</p>}
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
                 <div className="relative">

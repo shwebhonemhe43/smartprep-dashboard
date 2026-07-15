@@ -148,13 +148,13 @@ function Students() {
               <TableBody>
                 {isLoading ? (
                   <TableRow className="hover:bg-transparent">
-                    <TableCell colSpan={7} className="py-16 text-center text-muted-foreground">
+                    <TableCell colSpan={8} className="py-16 text-center text-muted-foreground">
                       <Loader2 className="mx-auto h-5 w-5 animate-spin" />
                     </TableCell>
                   </TableRow>
                 ) : filtered.length === 0 ? (
                   <TableRow className="hover:bg-transparent">
-                    <TableCell colSpan={7} className="py-16 text-center text-muted-foreground">
+                    <TableCell colSpan={8} className="py-16 text-center text-muted-foreground">
                       No students found.
                     </TableCell>
                   </TableRow>

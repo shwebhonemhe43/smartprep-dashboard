@@ -40,7 +40,7 @@ export function BrandLogo({
       {showText && (
         <span
           className={cn(
-            "font-display font-bold tracking-tight whitespace-nowrap",
+            "font-display font-bold tracking-tight whitespace-nowrap text-foreground",
             textSizeClasses[size],
             variant === "on-dark" && "text-white"
           )}

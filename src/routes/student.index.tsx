@@ -131,24 +131,52 @@ function StudentDashboard() {
       </div>
 
       {/* Donation CTA */}
-      <Card className="border-border/60 shadow-soft">
-        <CardContent className="flex flex-col items-start gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-4">
-            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
-              <Heart className="h-6 w-6" />
-            </span>
-            <div>
-              <h3 className="font-display text-lg font-semibold">Support Study Buddy</h3>
-              <p className="mt-1 max-w-xl text-sm text-muted-foreground">
-                Your contribution helps us keep the platform free and keep building tools that help students succeed.
-              </p>
+      <Dialog>
+        <Card className="border-border/60 shadow-soft">
+          <CardContent className="flex flex-col items-start gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-4">
+              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+                <Heart className="h-6 w-6" />
+              </span>
+              <div>
+                <h3 className="font-display text-lg font-semibold">Support Study Buddy</h3>
+                <p className="mt-1 max-w-xl text-sm text-muted-foreground">
+                  Your contribution helps us keep the platform free and keep building tools that help students succeed.
+                </p>
+              </div>
+            </div>
+            <DialogTrigger asChild>
+              <Button variant="default" size="sm" className="shrink-0">
+                Donate now
+              </Button>
+            </DialogTrigger>
+          </CardContent>
+        </Card>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display">Support Study Buddy</DialogTitle>
+            <DialogDescription>
+              Send your donation via Kpay to the account below.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="rounded-xl border border-border/60 bg-muted/40 p-4">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Account name</p>
+              <div className="mt-1 flex items-center justify-between gap-3">
+                <p className="font-display text-lg font-semibold">Grab That Distinction Admin</p>
+                <CopyButton text="Grab That Distinction Admin" />
+              </div>
+            </div>
+            <div className="rounded-xl border border-border/60 bg-muted/40 p-4">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Kpay number</p>
+              <div className="mt-1 flex items-center justify-between gap-3">
+                <p className="font-display text-lg font-semibold">09123456456</p>
+                <CopyButton text="09123456456" />
+              </div>
             </div>
           </div>
-          <Button variant="default" size="sm" className="shrink-0">
-            Donate now
-          </Button>
-        </CardContent>
-      </Card>
+        </DialogContent>
+      </Dialog>
 
       {/* Today's Study Plan */}
       <Card className="border-border/60 shadow-soft">

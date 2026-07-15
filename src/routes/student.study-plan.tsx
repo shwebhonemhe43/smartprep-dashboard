@@ -283,9 +283,9 @@ function CreatePlanDialog({ onCreated }: { onCreated: () => void }) {
     if (planType === "priority") {
       const cleaned = priorities.map((p) => p.trim()).filter(Boolean);
       if (cleaned.length === 0) return toast.error("Add at least one priority");
-      mut.mutate({ subject_id: subjectId, exam_date: examDate, plan_type: planType, available_hours: availability, priorities: cleaned });
+      mut.mutate({ subject_id: subjectId, exam_date: examDate, plan_type: planType, proficiency, available_hours: availability, priorities: cleaned });
     } else {
-      mut.mutate({ subject_id: subjectId, exam_date: examDate, plan_type: planType, available_hours: availability });
+      mut.mutate({ subject_id: subjectId, exam_date: examDate, plan_type: planType, proficiency, available_hours: availability });
     }
   };
 

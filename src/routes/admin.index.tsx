@@ -82,31 +82,9 @@ function AdminDashboard() {
       <StudentList />
 
 
-
       {/* Stat cards */}
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((s) => (
-          <Card
-            key={s.label}
-            className="rounded-2xl border-border/60 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-elegant"
-          >
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <p className="text-sm font-medium text-muted-foreground">
-                  {s.label}
-                </p>
-                <s.icon className="h-5 w-5 text-primary" />
-              </div>
-              <div className="mt-4 font-display text-4xl font-extrabold tracking-tight">
-                {s.value}
-              </div>
-              <p className="mt-2 text-xs font-medium text-muted-foreground">
-                {s.hint}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <StatCards />
+
 
       {/* Quick Actions + Recent Activity */}
       <div className="grid gap-6 lg:grid-cols-3">

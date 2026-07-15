@@ -162,6 +162,35 @@ export type Database = {
         }
         Relationships: []
       }
+      student_subject_enrollments: {
+        Row: {
+          enrolled_at: string
+          id: string
+          student_id: string
+          subject_id: string
+        }
+        Insert: {
+          enrolled_at?: string
+          id?: string
+          student_id: string
+          subject_id: string
+        }
+        Update: {
+          enrolled_at?: string
+          id?: string
+          student_id?: string
+          subject_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_subject_enrollments_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_topic_flashcards: {
         Row: {
           created_at: string

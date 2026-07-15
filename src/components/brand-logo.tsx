@@ -12,10 +12,12 @@ export function BrandLogo({
   className,
   to = "/",
   size = "md",
+  variant = "default",
 }: {
   className?: string;
   to?: string;
   size?: keyof typeof sizeClasses;
+  variant?: "default" | "on-dark";
 }) {
   return (
     <Link to={to} className={cn("inline-flex items-center group", className)}>
@@ -23,7 +25,8 @@ export function BrandLogo({
         src={logoAsset.url}
         alt="Grab That Distinction"
         className={cn(
-          "w-auto rounded-lg transition-transform group-hover:scale-[1.02] dark:bg-white/95 dark:p-1 dark:shadow-sm",
+          "w-auto rounded-lg transition-transform group-hover:scale-[1.02]",
+          variant === "on-dark" && "bg-white/95 p-1 shadow-sm",
           sizeClasses[size]
         )}
       />

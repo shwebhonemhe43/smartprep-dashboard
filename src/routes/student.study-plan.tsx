@@ -193,7 +193,6 @@ function PlanCard({
 }) {
   const { plan, subject, total_items, completed_items } = entry;
   const pct = total_items ? Math.round((completed_items / total_items) * 100) : 0;
-  const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const deleteFn = useServerFn(deleteStudyPlan);
   const deleteMut = useMutation({

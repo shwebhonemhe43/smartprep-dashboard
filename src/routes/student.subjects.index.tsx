@@ -1,12 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { BookMarked, Clock, Loader2, ArrowRight } from "lucide-react";
+import { BookMarked, Clock, Loader2, ArrowRight, CheckCircle2 } from "lucide-react";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { listMySubjects } from "@/lib/student-subjects.functions";
+import { listMyEnrollments, enrollInSubject } from "@/lib/enrollments.functions";
 
 export const Route = createFileRoute("/student/subjects/")({
   head: () => ({ meta: [{ title: "Subjects — NCC SmartPrep" }] }),
@@ -15,10 +17,26 @@ export const Route = createFileRoute("/student/subjects/")({
 
 function StudentSubjects() {
   const listFn = useServerFn(listMySubjects);
+  const enrollmentsFn = useServerFn(listMyEnrollments);
+  const enrollFn = useServerFn(enrollInSubject);
+  const qc = useQueryClient();
   const { data, isLoading } = useQuery({
     queryKey: ["my-subjects"],
     queryFn: () => listFn(),
     refetchOnWindowFocus: true,
+  });
+  const { data: enrollments } = useQuery({
+    queryKey: ["my-enrollments"],
+    queryFn: () => enrollmentsFn(),
+  });
+  const enrolledIds = new Set((enrollments ?? []).map((e) => e.subject_id));
+  const enrollMutation = useMutation({
+    mutationFn: (subject_id: string) => enrollFn({ data: { subject_id } }),
+    onSuccess: () => {
+      toast.success("Enrolled successfully");
+      qc.invalidateQueries({ queryKey: ["my-enrollments"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Failed to enroll"),
   });
 
   const program = data?.program ?? null;
@@ -53,7 +71,10 @@ function StudentSubjects() {
         </Card>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {subjects.map((s: any) => (
+          {subjects.map((s: any) => {
+            const isEnrolled = enrolledIds.has(s.id);
+            const isEnrolling = enrollMutation.isPending && enrollMutation.variables === s.id;
+            return (
             <Card
               key={s.id}
               className="flex h-full flex-col rounded-2xl border-border/60 shadow-soft transition hover:shadow-elegant hover:border-primary/40"
@@ -84,15 +105,30 @@ function StudentSubjects() {
                   </div>
                   <Progress value={s.progress} className="h-2" />
                 </div>
-                <Button asChild size="sm" className="w-full">
-                  <Link to="/student/subjects/$id" params={{ id: s.id }}>
-                    {s.progress > 0 ? "Continue" : "Enroll"}
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
+                {isEnrolled ? (
+                  <Button asChild size="sm" className="w-full">
+                    <Link to="/student/subjects/$id" params={{ id: s.id }}>
+                      {s.progress > 0 ? "Continue" : "Enrolled"}
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    className="w-full"
+                    disabled={isEnrolling}
+                    onClick={() => enrollMutation.mutate(s.id)}
+                  >
+                    {isEnrolling ? (
+                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Enrolling...</>
+                    ) : (
+                      <><CheckCircle2 className="mr-2 h-4 w-4" /> Enroll</>
+                    )}
+                  </Button>
+                )}
               </CardContent>
             </Card>
-          ))}
+          );})}
         </div>
       )}
     </div>

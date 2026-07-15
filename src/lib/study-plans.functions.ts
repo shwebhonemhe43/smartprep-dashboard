@@ -364,20 +364,93 @@ export const createStudyPlan = createServerFn({ method: "POST" })
       progress_percentage: progressBy.get(t.id) ?? 0,
     }));
 
-    const systemPrompt = `You are an academic study planner. Given a single subject, an exam date, remaining available study slots, and either topics or priority goals, produce a realistic schedule.
+    // Busy periods from OTHER study plans owned by this student
+    const busyByDate = await fetchBusyFromOtherPlans(
+      context.supabase,
+      context.userId,
+      today.toISOString().slice(0, 10),
+      exam.toISOString().slice(0, 10),
+      null,
+    );
+
+    // Compute free sub-intervals per available slot after subtracting busy periods,
+    // and suggest a fair-share allocation weighted by proficiency vs other plans on same day.
+    const thisWeight = PROFICIENCY_WEIGHT[data.proficiency];
+    const slotsWithFreeTime = availableSlots.map((s) => {
+      const dayBusy = (busyByDate[s.date] ?? []).filter((b) =>
+        intervalsOverlap(s.start, s.end, b.start, b.end),
+      );
+      // Build free intervals inside the slot
+      const busySorted = [...dayBusy]
+        .map((b) => ({
+          start: Math.max(toMinutes(s.start), toMinutes(b.start)),
+          end: Math.min(toMinutes(s.end), toMinutes(b.end)),
+          proficiency: b.proficiency,
+        }))
+        .sort((a, b) => a.start - b.start);
+      const free: Array<{ start: string; end: string; minutes: number }> = [];
+      let cursor = toMinutes(s.start);
+      for (const b of busySorted) {
+        if (b.start > cursor) {
+          const startM = cursor;
+          const endM = b.start;
+          free.push({
+            start: `${String(Math.floor(startM / 60)).padStart(2, "0")}:${String(startM % 60).padStart(2, "0")}`,
+            end: `${String(Math.floor(endM / 60)).padStart(2, "0")}:${String(endM % 60).padStart(2, "0")}`,
+            minutes: endM - startM,
+          });
+        }
+        cursor = Math.max(cursor, b.end);
+      }
+      if (cursor < toMinutes(s.end)) {
+        const startM = cursor;
+        const endM = toMinutes(s.end);
+        free.push({
+          start: `${String(Math.floor(startM / 60)).padStart(2, "0")}:${String(startM % 60).padStart(2, "0")}`,
+          end: `${String(Math.floor(endM / 60)).padStart(2, "0")}:${String(endM % 60).padStart(2, "0")}`,
+          minutes: endM - startM,
+        });
+      }
+
+      // Suggested max minutes for THIS plan in this slot based on proficiency-weighted share
+      const otherWeights = dayBusy.reduce((acc, b) => {
+        const w = b.proficiency ? PROFICIENCY_WEIGHT[b.proficiency as "strong" | "medium" | "weak"] ?? 2 : 2;
+        return acc + w;
+      }, 0);
+      const totalWeight = thisWeight + otherWeights;
+      const freeMinutes = free.reduce((a, f) => a + f.minutes, 0);
+      const suggestedMax = totalWeight > 0 ? Math.round((freeMinutes * thisWeight) / (thisWeight === 0 ? 1 : thisWeight)) : freeMinutes;
+      return {
+        date: s.date,
+        weekday: s.weekday,
+        slot: s.slot,
+        slot_start: s.start,
+        slot_end: s.end,
+        free_intervals: free,
+        free_minutes: freeMinutes,
+        suggested_max_minutes: Math.min(freeMinutes, suggestedMax),
+      };
+    }).filter((s) => s.free_minutes > 0);
+
+    if (slotsWithFreeTime.length === 0) {
+      throw new Error("All your available slots are already taken by other study plans. Free up time or pick different slots.");
+    }
+
+    const systemPrompt = `You are an academic study planner. Given a single subject, an exam date, remaining available study slots (with free sub-intervals after removing time already taken by the student's OTHER study plans), and either topics or priority goals, produce a realistic schedule.
 
 Rules:
-- Only schedule sessions in the provided available_slots (no past dates).
-- Every scheduled item must reuse an available_slots date + start_time + end_time triple exactly.
+- Only schedule sessions inside the provided free_intervals of available_slots. Every item's [start_time, end_time] MUST fit fully inside one free_interval on that date.
+- NEVER overlap the provided busy_periods (other plans' sessions on the same day).
 - All sessions belong to the single provided subject.
-- For topic plans: distribute the provided topics across sessions, favoring lower progress_percentage.
+- Fair-share allocation: when other plans share a day, divide the remaining free minutes across plans based on subject_proficiency weights (weak=3, medium=2, strong=1). Respect each slot's suggested_max_minutes as the soft cap for THIS plan.
+- For topic plans: distribute topics across sessions, favoring lower progress_percentage.
 - For priority plans: use the provided priority titles for session titles; topic_id must be null.
-- Adjust total time allocation and session depth based on subject_proficiency (the student's self-rated confidence in this subject):
-  * "weak": HIGHEST time allocation. Use as many available_slots as possible, prefer longer sessions, and schedule this subject earlier in the timeline. Emphasize foundational learning, detailed explanations, worked examples, then revision and practice.
-  * "medium": NORMAL allocation. Balanced mix of learning, revision, and practice.
-  * "strong": LOWEST time allocation. Use fewer available_slots (leave some empty for rest), keep sessions shorter, and focus on advanced practice, mock questions, and revision. Skip basic explanations.
+- Adjust total time based on this plan's subject_proficiency:
+  * "weak": HIGHEST time allocation — use most of the free_intervals, prefer longer sessions, schedule earlier, foundational learning first.
+  * "medium": Balanced learning, revision, and practice.
+  * "strong": LOWEST time allocation — fewer/shorter sessions, focus on advanced practice and revision.
 - Reserve the final 1-2 days before the exam for revision.
-- Do not create more items than available_slots; leaving slots empty for rest is fine.
+- Session duration should be between 30 and 180 minutes and align with the chosen free_interval boundaries.
 - Output STRICT JSON only.`;
 
     const userPayload = {
@@ -386,7 +459,9 @@ Rules:
       today: today.toISOString().slice(0, 10),
       plan_type: data.plan_type,
       subject_proficiency: data.proficiency,
-      available_slots: availableSlots,
+      proficiency_weight: thisWeight,
+      available_slots: slotsWithFreeTime,
+      busy_periods: busyByDate,
       topics: data.plan_type === "topic" ? topicSummary : [],
       priorities: data.plan_type === "priority" ? data.priorities ?? [] : [],
     };
@@ -446,16 +521,30 @@ Return only the JSON object.`;
     const rawItems: any[] = Array.isArray(parsed?.items) ? parsed.items : [];
     if (rawItems.length === 0) throw new Error("AI produced no schedule items. Try again.");
 
-    const slotKey = new Set(availableSlots.map((s) => `${s.date}|${s.start}|${s.end}`));
+    const slotsByDate = new Map<string, typeof slotsWithFreeTime>();
+    for (const s of slotsWithFreeTime) {
+      const arr = slotsByDate.get(s.date) ?? [];
+      arr.push(s);
+      slotsByDate.set(s.date, arr);
+    }
     const validTopicIds = new Set(topicList.map((t: any) => t.id));
-    const validItems = rawItems.filter((it) =>
-      typeof it?.date === "string" &&
-      typeof it?.start_time === "string" &&
-      typeof it?.end_time === "string" &&
-      slotKey.has(`${it.date}|${it.start_time}|${it.end_time}`) &&
-      typeof it?.title === "string" && it.title.trim().length > 0
-    );
-    if (validItems.length === 0) throw new Error("AI schedule did not match available slots. Try again.");
+    const validItems = rawItems.filter((it) => {
+      if (typeof it?.date !== "string" || typeof it?.start_time !== "string" || typeof it?.end_time !== "string") return false;
+      if (typeof it?.title !== "string" || it.title.trim().length === 0) return false;
+      const daySlots = slotsByDate.get(it.date);
+      if (!daySlots) return false;
+      // Must fit inside a free_interval of some slot on this date
+      const fits = daySlots.some((s) =>
+        s.free_intervals.some((fi) => withinSlot(it.start_time, it.end_time, fi.start, fi.end)),
+      );
+      if (!fits) return false;
+      // Must not overlap any busy period on this date
+      const dayBusy = busyByDate[it.date] ?? [];
+      const clashes = dayBusy.some((b) => intervalsOverlap(it.start_time, it.end_time, b.start, b.end));
+      return !clashes;
+    });
+    if (validItems.length === 0) throw new Error("AI schedule did not fit the free time around your other plans. Try again.");
+
 
     const { data: plan, error: pInsErr } = await (context.supabase as any)
       .from("study_plans")

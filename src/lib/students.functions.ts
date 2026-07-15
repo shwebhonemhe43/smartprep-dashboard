@@ -20,7 +20,24 @@ export const listPreRegisteredStudents = createServerFn({ method: "GET" }).handl
       .select("id, student_id, full_name, phone_number, program, email, status, register_status, created_at")
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
-    return data ?? [];
+    const rows = data ?? [];
+
+    const emails = rows.map((r) => r.email);
+    let profileMap = new Map<string, string>();
+    if (emails.length > 0) {
+      const { data: profiles } = await supabaseAdmin
+        .from("student_profiles")
+        .select("email, approval_status")
+        .in("email", emails);
+      profileMap = new Map(
+        (profiles ?? []).map((p) => [p.email, p.approval_status ?? "pending"]),
+      );
+    }
+
+    return rows.map((r) => ({
+      ...r,
+      approval_status: profileMap.get(r.email) ?? null,
+    }));
   },
 );
 

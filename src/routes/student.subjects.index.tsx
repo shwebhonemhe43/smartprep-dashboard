@@ -128,7 +128,7 @@ function StudentSubjects() {
                 )}
               </CardContent>
             </Card>
-          ))}
+          );})}
         </div>
       )}
     </div>

@@ -10,11 +10,6 @@ const PROGRAM_OPTIONS = [
 ] as const;
 
 const registerSchema = z.object({
-  student_id: z
-    .string()
-    .trim()
-    .toUpperCase()
-    .regex(/^\d{4}D\d{4}$/, "Student ID must match YYYYDXXXX"),
   email: z.string().trim().toLowerCase().email(),
   full_name: z.string().trim().min(1).max(200),
   password: z.string().min(6).max(200),
@@ -29,7 +24,7 @@ export const registerStudent = createServerFn({ method: "POST" })
     // Look up any existing pre-registered record for this email (optional).
     const { data: pre } = await supabaseAdmin
       .from("pre_registered_students")
-      .select("id, student_id, full_name, program, status, email")
+      .select("id, full_name, program, status, email")
       .eq("email", data.email)
       .maybeSingle();
 
@@ -37,7 +32,6 @@ export const registerStudent = createServerFn({ method: "POST" })
       throw new Error("This student has already registered. Please log in instead.");
     }
 
-    const student_id = data.student_id;
     const full_name = data.full_name;
     const program = data.program;
 
@@ -46,7 +40,7 @@ export const registerStudent = createServerFn({ method: "POST" })
       email: data.email,
       password: data.password,
       email_confirm: true,
-      user_metadata: { full_name, program, student_id },
+      user_metadata: { full_name, program },
     });
 
     if (createErr || !created?.user) {
@@ -56,7 +50,6 @@ export const registerStudent = createServerFn({ method: "POST" })
     // Create the student profile (starts as pending approval).
     const { error: profileErr } = await supabaseAdmin.from("student_profiles").insert({
       auth_user_id: created.user.id,
-      student_id,
       full_name,
       email: data.email,
       program,
@@ -74,14 +67,12 @@ export const registerStudent = createServerFn({ method: "POST" })
         .update({
           status: "registered",
           register_status: "self-register",
-          student_id,
           full_name,
           program,
         })
         .eq("id", pre.id);
     } else {
       await supabaseAdmin.from("pre_registered_students").insert({
-        student_id,
         full_name,
         email: data.email,
         phone_number: "",

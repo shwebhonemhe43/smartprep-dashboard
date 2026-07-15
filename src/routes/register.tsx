@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BrandLogo } from "@/components/brand-logo";
-import { User, Mail, Lock, Loader2, GraduationCap, IdCard } from "lucide-react";
+import { User, Mail, Lock, Loader2, GraduationCap } from "lucide-react";
 import { toast } from "sonner";
 import { registerStudent } from "@/lib/auth.functions";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,8 +21,6 @@ const PROGRAM_OPTIONS = [
   "HND",
 ] as const;
 type ProgramOption = (typeof PROGRAM_OPTIONS)[number];
-
-const STUDENT_ID_REGEX = /^\d{4}D\d{4}$/;
 
 export const Route = createFileRoute("/register")({
   head: () => ({
@@ -38,20 +36,15 @@ function RegisterPage() {
   const navigate = useNavigate();
   const registerFn = useServerFn(registerStudent);
   const [form, setForm] = useState<{
-    student_id: string;
     name: string;
     email: string;
     password: string;
     confirm: string;
     program: ProgramOption | "";
-  }>({ student_id: "", name: "", email: "", password: "", confirm: "", program: "" });
+  }>({ name: "", email: "", password: "", confirm: "", program: "" });
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   const errors = {
-    student_id:
-      touched.student_id && !STUDENT_ID_REGEX.test(form.student_id.trim())
-        ? "Format: YYYYDXXXX (e.g. 2025D0001)"
-        : "",
     name: touched.name && form.name.trim().length < 2 ? "Enter your full name" : "",
     email: touched.email && !/^\S+@\S+\.\S+$/.test(form.email) ? "Enter a valid Outlook email" : "",
     password: touched.password && form.password.length < 6 ? "Min 6 characters" : "",
@@ -60,7 +53,7 @@ function RegisterPage() {
   };
 
   const set =
-    (k: "student_id" | "name" | "email" | "password" | "confirm") =>
+    (k: "name" | "email" | "password" | "confirm") =>
     (e: React.ChangeEvent<HTMLInputElement>) =>
       setForm((f) => ({ ...f, [k]: e.target.value }));
   const blur = (k: string) => () => setTouched((t) => ({ ...t, [k]: true }));
@@ -69,7 +62,6 @@ function RegisterPage() {
     mutationFn: async () => {
       await registerFn({
         data: {
-          student_id: form.student_id.trim().toUpperCase(),
           email: form.email.trim().toLowerCase(),
           full_name: form.name,
           password: form.password,
@@ -90,7 +82,6 @@ function RegisterPage() {
   });
 
   const canSubmit =
-    STUDENT_ID_REGEX.test(form.student_id.trim()) &&
     form.name.trim().length >= 2 &&
     /^\S+@\S+\.\S+$/.test(form.email) &&
     form.password.length >= 6 &&
@@ -114,7 +105,6 @@ function RegisterPage() {
               onSubmit={(e) => {
                 e.preventDefault();
                 setTouched({
-                  student_id: true,
                   name: true,
                   email: true,
                   password: true,
@@ -124,21 +114,6 @@ function RegisterPage() {
                 if (canSubmit && !mutation.isPending) mutation.mutate();
               }}
             >
-              <div className="space-y-2">
-                <Label htmlFor="student_id">Student ID</Label>
-                <div className="relative">
-                  <IdCard className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="student_id"
-                    className="pl-9"
-                    placeholder="2025D0001"
-                    value={form.student_id}
-                    onChange={set("student_id")}
-                    onBlur={blur("student_id")}
-                  />
-                </div>
-                {errors.student_id && <p className="text-xs text-destructive">{errors.student_id}</p>}
-              </div>
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
                 <div className="relative">
@@ -151,7 +126,7 @@ function RegisterPage() {
                 <Label htmlFor="email">Outlook Email</Label>
                 <div className="relative">
                   <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input id="email" type="email" className="pl-9" placeholder="2025d0001@student.strategyfirst.edu.mm" value={form.email} onChange={set("email")} onBlur={blur("email")} />
+                  <Input id="email" type="email" className="pl-9" value={form.email} onChange={set("email")} onBlur={blur("email")} />
                 </div>
                 {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
               </div>

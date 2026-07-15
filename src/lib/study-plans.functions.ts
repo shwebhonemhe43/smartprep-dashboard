@@ -419,7 +419,7 @@ export const createStudyPlan = createServerFn({ method: "POST" })
       }, 0);
       const totalWeight = thisWeight + otherWeights;
       const freeMinutes = free.reduce((a, f) => a + f.minutes, 0);
-      const suggestedMax = totalWeight > 0 ? Math.round((freeMinutes * thisWeight) / (thisWeight === 0 ? 1 : thisWeight)) : freeMinutes;
+      const suggestedMax = totalWeight > 0 ? Math.round((freeMinutes * thisWeight) / totalWeight) : freeMinutes;
       return {
         date: s.date,
         weekday: s.weekday,

@@ -470,6 +470,10 @@ function StudyPlanDetail({
                         key={it.id}
                         it={it}
                         onToggle={(v) => toggleMut.mutate({ item_id: it.id, completed: v })}
+                        onTestCompleted={() => {
+                          qc.invalidateQueries({ queryKey: ["study-plan", planId] });
+                          onChanged();
+                        }}
                       />
                     ))}
                   </CardContent>

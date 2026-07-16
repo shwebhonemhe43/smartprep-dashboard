@@ -286,7 +286,7 @@ function StudentDashboard() {
         </Card>
 
         <Card className="border-border/60 shadow-soft">
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
             <CardTitle className="font-display text-lg">This week's plan</CardTitle>
             <Button asChild variant="ghost" size="sm">
               <Link to="/student/study-plan">View</Link>

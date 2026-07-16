@@ -375,7 +375,7 @@ function StudentList() {
             No student profiles yet.
           </p>
         ) : (
-          <div className="overflow-hidden rounded-xl border border-border/60">
+          <div className="overflow-x-auto rounded-xl border border-border/60">
             <table className="w-full text-sm">
               <thead className="bg-muted/40">
                 <tr className="text-left">

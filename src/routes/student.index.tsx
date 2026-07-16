@@ -184,7 +184,7 @@ function StudentDashboard() {
 
       {/* Today's Study Plan */}
       <Card className="border-border/60 shadow-soft">
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
           <CardTitle className="font-display text-lg">Today's Study Plan</CardTitle>
           <Button asChild variant="ghost" size="sm">
             <Link to="/student/study-plan">View plan</Link>

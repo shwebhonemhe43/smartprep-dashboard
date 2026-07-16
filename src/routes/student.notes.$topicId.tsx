@@ -76,7 +76,7 @@ function NotesPage() {
                 </span>
               )}
             </div>
-            <h1 className="font-display text-3xl font-extrabold tracking-tight">{data.topic_name}</h1>
+            <h1 className="break-words font-display text-2xl font-extrabold tracking-tight sm:text-3xl">{data.topic_name}</h1>
             <p className="text-xs text-muted-foreground">
               Last generated: {new Date(data.updated_at ?? data.created_at).toLocaleString()}
             </p>

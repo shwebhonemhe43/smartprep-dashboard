@@ -268,15 +268,15 @@ function StudentDashboard() {
             ) : (
               <ul className="divide-y divide-border/60">
                 {data.activity.map((a, i) => (
-                  <li key={i} className="flex items-center justify-between gap-3 py-3 text-sm">
-                    <span className="min-w-0 truncate">{a.what}</span>
-                    <span className="flex shrink-0 items-center gap-3 text-xs text-muted-foreground">
+                  <li key={i} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 py-3 text-sm">
+                    <span className="min-w-0 flex-1 break-words">{a.what}</span>
+                    <span className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
                       {a.score && (
                         <span className="rounded-full bg-primary/10 px-2 py-0.5 font-medium text-primary">
                           {a.score}
                         </span>
                       )}
-                      {timeAgo(a.when)}
+                      <span className="whitespace-nowrap">{timeAgo(a.when)}</span>
                     </span>
                   </li>
                 ))}

@@ -310,9 +310,9 @@ function StudentDashboard() {
                 const pct = s.total > 0 ? Math.round((s.done / s.total) * 100) : 0;
                 return (
                   <div key={s.name} className="space-y-1.5">
-                    <div className="flex justify-between">
-                      <span className="truncate font-medium">{s.name}</span>
-                      <span className="text-muted-foreground">{pct}%</span>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="min-w-0 flex-1 truncate font-medium">{s.name}</span>
+                      <span className="shrink-0 text-muted-foreground">{pct}%</span>
                     </div>
                     <Progress value={pct} />
                   </div>

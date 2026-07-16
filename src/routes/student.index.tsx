@@ -20,6 +20,7 @@ import {
 import { cn } from "@/lib/utils";
 import { getStudentDashboard } from "@/lib/student-dashboard.functions";
 import { togglePlanItem } from "@/lib/study-plans.functions";
+import paymentQrAsset from "@/assets/payment-qr.png.asset.json";
 
 export const Route = createFileRoute("/student/")({
   component: StudentDashboard,
@@ -168,10 +169,13 @@ function StudentDashboard() {
               </div>
             </div>
             <div className="rounded-xl border border-border/60 bg-muted/40 p-4">
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Kpay number</p>
-              <div className="mt-1 flex items-center justify-between gap-3">
-                <p className="font-display text-lg font-semibold">09123456456</p>
-                <CopyButton text="09123456456" />
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Payment scan</p>
+              <div className="mt-3 flex justify-center">
+                <img
+                  src={paymentQrAsset.url}
+                  alt="Payment QR code"
+                  className="h-auto w-full max-w-[240px] rounded-lg"
+                />
               </div>
             </div>
           </div>

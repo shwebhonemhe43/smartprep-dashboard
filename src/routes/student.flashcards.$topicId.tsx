@@ -121,7 +121,7 @@ function FlashcardsPage() {
               )}
             </div>
             <div className="flex flex-wrap items-start justify-between gap-3">
-              <h1 className="font-display text-3xl font-extrabold tracking-tight">{data.topic_name}</h1>
+              <h1 className="min-w-0 flex-1 break-words font-display text-2xl font-extrabold tracking-tight sm:text-3xl">{data.topic_name}</h1>
               <Button
                 onClick={() => saveMut.mutate()}
                 disabled={saveMut.isPending || savedQ.data?.saved}

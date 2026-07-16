@@ -76,15 +76,15 @@ function NotesPage() {
                 </span>
               )}
             </div>
-            <h1 className="font-display text-3xl font-extrabold tracking-tight">{data.topic_name}</h1>
+            <h1 className="break-words font-display text-2xl font-extrabold tracking-tight sm:text-3xl">{data.topic_name}</h1>
             <p className="text-xs text-muted-foreground">
               Last generated: {new Date(data.updated_at ?? data.created_at).toLocaleString()}
             </p>
           </div>
 
           <Card className="border-border/60 shadow-soft">
-            <CardContent className="p-6 sm:p-8">
-              <article className="max-w-none space-y-3 text-[15px] leading-relaxed text-foreground [&_h1]:font-display [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mt-2 [&_h2]:font-display [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:mt-6 [&_h2]:mb-2 [&_h3]:font-semibold [&_h3]:text-base [&_h3]:mt-4 [&_p]:my-2 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_strong]:font-semibold [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-sm">
+            <CardContent className="overflow-x-auto p-6 sm:p-8">
+              <article className="max-w-none space-y-3 break-words text-[15px] leading-relaxed text-foreground [&_h1]:font-display [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mt-2 [&_h2]:font-display [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:mt-6 [&_h2]:mb-2 [&_h3]:font-semibold [&_h3]:text-base [&_h3]:mt-4 [&_p]:my-2 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_strong]:font-semibold [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-sm [&_pre]:overflow-x-auto [&_pre]:rounded [&_pre]:bg-muted [&_pre]:p-3 [&_table]:block [&_table]:overflow-x-auto">
                 <ReactMarkdown>{data.notes_content}</ReactMarkdown>
               </article>
             </CardContent>

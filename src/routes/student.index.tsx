@@ -184,7 +184,7 @@ function StudentDashboard() {
 
       {/* Today's Study Plan */}
       <Card className="border-border/60 shadow-soft">
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
           <CardTitle className="font-display text-lg">Today's Study Plan</CardTitle>
           <Button asChild variant="ghost" size="sm">
             <Link to="/student/study-plan">View plan</Link>
@@ -268,15 +268,15 @@ function StudentDashboard() {
             ) : (
               <ul className="divide-y divide-border/60">
                 {data.activity.map((a, i) => (
-                  <li key={i} className="flex items-center justify-between gap-3 py-3 text-sm">
-                    <span className="min-w-0 truncate">{a.what}</span>
-                    <span className="flex shrink-0 items-center gap-3 text-xs text-muted-foreground">
+                  <li key={i} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 py-3 text-sm">
+                    <span className="min-w-0 flex-1 break-words">{a.what}</span>
+                    <span className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
                       {a.score && (
                         <span className="rounded-full bg-primary/10 px-2 py-0.5 font-medium text-primary">
                           {a.score}
                         </span>
                       )}
-                      {timeAgo(a.when)}
+                      <span className="whitespace-nowrap">{timeAgo(a.when)}</span>
                     </span>
                   </li>
                 ))}
@@ -286,7 +286,7 @@ function StudentDashboard() {
         </Card>
 
         <Card className="border-border/60 shadow-soft">
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
             <CardTitle className="font-display text-lg">This week's plan</CardTitle>
             <Button asChild variant="ghost" size="sm">
               <Link to="/student/study-plan">View</Link>
@@ -310,9 +310,9 @@ function StudentDashboard() {
                 const pct = s.total > 0 ? Math.round((s.done / s.total) * 100) : 0;
                 return (
                   <div key={s.name} className="space-y-1.5">
-                    <div className="flex justify-between">
-                      <span className="truncate font-medium">{s.name}</span>
-                      <span className="text-muted-foreground">{pct}%</span>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="min-w-0 flex-1 truncate font-medium">{s.name}</span>
+                      <span className="shrink-0 text-muted-foreground">{pct}%</span>
                     </div>
                     <Progress value={pct} />
                   </div>

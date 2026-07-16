@@ -34,11 +34,20 @@ function NotesPage() {
 
   return (
     <div className="space-y-6">
-      <Button asChild variant="ghost" size="sm" className="-ml-2 w-fit">
-        <Link to="/student/subjects">
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Subjects
-        </Link>
-      </Button>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button asChild variant="ghost" size="sm" className="-ml-2 w-fit">
+          <Link to="/student/subjects">
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Subjects
+          </Link>
+        </Button>
+        {data?.subject_id && (
+          <Button asChild variant="ghost" size="sm" className="w-fit">
+            <Link to="/student/subjects/$id" params={{ id: data.subject_id }}>
+              <ArrowLeft className="mr-2 h-4 w-4" /> Back to Topic
+            </Link>
+          </Button>
+        )}
+      </div>
 
       {isLoading ? (
         <Card className="border-border/60 shadow-soft">

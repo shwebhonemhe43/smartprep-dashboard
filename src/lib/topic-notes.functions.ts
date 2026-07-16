@@ -39,6 +39,7 @@ export const getOrGenerateTopicNotes = createServerFn({ method: "POST" })
         updated_at: existing.updated_at,
         topic_name: topic.file_name.replace(/\.[^.]+$/, ""),
         subject: topic.subjects,
+        subject_id: topic.subject_id,
       };
     }
 
@@ -123,6 +124,7 @@ Output structure:
             updated_at: savedExisting.updated_at,
             topic_name: topicName,
             subject: topic.subjects,
+            subject_id: topic.subject_id,
           };
         }
       }
@@ -136,5 +138,6 @@ Output structure:
       updated_at: saved.updated_at,
       topic_name: topicName,
       subject: topic.subjects,
+      subject_id: topic.subject_id,
     };
   });
